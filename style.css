@@ -2,4 +2,29 @@ body {
     background-color: #282c34;
     color: #ccc;
     overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: #ccc;
+    background-color: #444;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+svg {
+    border: 1px solid #ccc; /* Optional: adds a border around the SVG for visibility */
 }
