@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deez</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <svg width="500" height="500"></svg>
+
+    <script>
+        const svg = d3.select("svg");
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        
+        svg.attr("width", width)
+           .attr("height", height);
+        
+        const centerX = width / 2;
+        const centerY = height / 2;
+        
+        const node = svg.append("circle")
+                        .attr("cx", centerX)
+                        .attr("cy", centerY)
+                        .attr("r", 30)
+                        .style("fill", "white");
+    </script>
+    </script>
+</body>
+</html>
