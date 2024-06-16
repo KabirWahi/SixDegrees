@@ -1,0 +1,46 @@
+body {
+    background-color: #282c34;
+    color: #ccc;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: #ccc;
+    background-color: #444;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+svg {
+    overflow: hidden;
+}
+
+.circle-node {
+    fill: #f0f0f0; /* Light shade of white for the circle */
+    stroke: #707070; /* Grey border for the circle */
+    stroke-width: 2px; /* Border thickness */
+}
+
+.circle-node:hover {
+    fill: #ffffff; /* Changes fill on hover for visual feedback */
+}
+
+.text-node {
+    fill: #ccc; /* Text color */
+    text-anchor: middle; /* Aligns text to the middle of the node */
+    dominant-baseline: middle; /* Vertically centers the text within the node */
+}
