@@ -5,9 +5,25 @@
     font-style: normal;
 }
 
+:root {
+    --primary-color: #8b93f8;  /* Blue */
+    --background-color: #282c34;
+    --button-color: #0011ff;
+    --text-color: #f8f8fd;
+    --button-hover-color: #646fff;
+    --button-shadow-color: #1f35ff;
+}
+
+.red-theme {
+    --primary-color: #ef6872;
+    --button-color: #E63946;
+    --button-hover-color: #ee4651;
+    --button-shadow-color: #85373d;
+}
+
 body {
-    background-color: #282c34;
-    color: #f8f8fd;
+    background-color: var(--background-color);
+    color: var(--text-color);
     overflow: hidden;
     font-family: 'Mighty Souly', sans-serif;
     display: flex;
@@ -45,26 +61,26 @@ div#button-container {
 div#title {
     margin: 0.5em;
     text-align: center; /* Centers the text inside the title div */
-    -webkit-text-stroke: 2px #8b93f8; /* Adds a stroke around the text */
+    -webkit-text-stroke: 2px var(--primary-color)
 }
 
 .button {
     cursor: pointer;
     font-size: larger;
     font-family: inherit;
-    color: #0011ff;
-    background-color: #f8f8fd;
+    color: var(--button-color);
+    background-color: var(--text-color);
     padding: 1em 3em;
     border-radius: 50em;
-    border: 6px solid #8b93f8;
-    box-shadow: 0px 8px #1f35ff;
+    border: 6px solid var(--primary-color);
+    box-shadow: 0px 8px var(--button-shadow-color);
     margin: 0.5em; /* Adds margin around the button */
 }
 
 .button:active {
     position: relative;
     top: 8px;
-    border: 6px solid #646fff;
+    border: 6px solid var(--button-hover-color);
     box-shadow: 0px 0px;
 }
 
@@ -125,7 +141,7 @@ p#info-text {
 }
 
 h1#info-header {
-    -webkit-text-stroke: 2px #8b93f8; /* Adds a stroke around the text */
+    -webkit-text-stroke: 2px var(--primary-color);
     font-size: 4em;
 }
 
@@ -145,7 +161,7 @@ li {
     cursor: pointer; /* Changes the cursor to a pointer to indicate clickability */
     transition: background-color 0.3s; /* Smooth transition for background color change */
     background-color: #282c34; /* Initial background color */
-    border-bottom: 1px solid #8b93f8; /* Adds a subtle line between items */
+    border-bottom: 1px solid var(--primary-color);
 }
 
 li:hover {
@@ -167,7 +183,7 @@ h1#neighbors-header {
     padding: 10px 0; /* Add padding for spacing */
     color: #f8f8fd; /* Text color */
     font-family: 'Mighty Souly', sans-serif;
-    -webkit-text-stroke: 2px #8b93f8; /* Adds a stroke around the text */
+    -webkit-text-stroke: 2px var(--primary-color);
 }
 
 .scrollbar {
@@ -176,9 +192,9 @@ h1#neighbors-header {
     overflow: auto;
     list-style-type: none;
     box-sizing: border-box; /* Includes padding in the width and height calculation */
-    border-top: 0.3em solid #8b93f8;
-    border-bottom: 0.3em solid #8b93f8;
-    border-left: 0.3em solid #8b93f8;
+    border-top: 0.3em solid var(--primary-color);
+    border-bottom: 0.3em solid var(--primary-color);
+    border-left: 0.3em solid var(--primary-color);
     border-radius: 8px; /* Smooth rounded corners */
     font-size: 2em;
     padding: 0px 10px 10px 10px;
@@ -191,11 +207,11 @@ h1#neighbors-header {
     width: 0.3em;
 }
 .scrollbar::-webkit-scrollbar-track {
-    background-color: #8b93f8;
+    background-color: var(--primary-color);
 }
 .scrollbar::-webkit-scrollbar-thumb {
     border-radius: 8px;
-    background-color: #e7e7e7;
+    background-color: var(--text-color);
 }
 
 li {
@@ -211,7 +227,7 @@ li {
     padding: 10px 0; /* Add padding for spacing */
     color: #f8f8fd; /* Text color */
     font-family: 'Mighty Souly', sans-serif;
-    -webkit-text-stroke: 2px #8b93f8; /* Adds a stroke around the text */
+    -webkit-text-stroke: 2px var(--primary-color);
     display: none;
     justify-content: center;
 }
@@ -223,8 +239,8 @@ li {
     top: 5%;
     width: auto;
     padding: 10px 20px;
-    background-color: #282c34;
-    border: 1px solid #8b93f8;
+    background-color: var(--background-color);
+    border: 1px solid var(--primary-color);
     border-radius: 8px;
     font-family: 'Mighty Souly', sans-serif;
     font-size: 2em;
@@ -232,4 +248,56 @@ li {
     text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     display: flex; /* Hides the target display by default */
+}
+
+.checkbox {
+  top: 0%;
+  right: 0%;
+  margin: 20px;
+  width: 223px;
+  height: 60px;
+  background-color: #1d1f24;
+  border-radius: 30px;
+  position: absolute;
+  color: var(--text-color);
+  overflow: hidden;
+}
+
+#checkbox-toggle {
+  display: none;
+}
+
+.checkbox .toggle {
+  width: 100px;
+  height: 50px;
+  position: absolute;
+  border-radius: 30px;
+  left: 5px;
+  cursor: pointer;
+  background: var(--primary-color);
+  transition: 0.4s;
+}
+
+.checkbox .slide {
+  width: 230px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  cursor: pointer;
+}
+
+.checkbox .slide .text {
+  font-size: 16px;
+  z-index: 100;
+  cursor: pointer;
+}
+
+.check:checked + .checkbox .slide .toggle {
+  transform: translateX(113px);
+  background: var(--primary-color);
+}
+
+.check:checked + .checkbox .slide {
+  color: var(--text-color);
 }

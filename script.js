@@ -5,10 +5,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const button = document.querySelector('.button');
     const titleDiv = document.getElementById('title');
     const buttonContainer = document.getElementById('button-container');
+    const checkbox = document.getElementById('checkbox');
 
     button.addEventListener('click', () => {
         titleDiv.style.display = 'none';
         buttonContainer.style.display = 'none';
+        checkbox.style.display = 'none';
 
         fetch('http://127.0.0.1:5000/api/random')
         .then(response => response.json())
@@ -21,6 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
             spawnSourceNode(data.source[1]);
         })
         .catch(error => console.error('Error fetching data:', error));
+    });
+    
+    var checkboxToggle = document.getElementById('checkbox-toggle');
+
+    checkboxToggle.addEventListener('change', function() {
+        document.body.classList.toggle('red-theme');
     });
 });
 
