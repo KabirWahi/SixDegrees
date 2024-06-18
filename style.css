@@ -45,6 +45,7 @@ div#button-container {
 div#title {
     margin: 0.5em;
     text-align: center; /* Centers the text inside the title div */
+    -webkit-text-stroke: 2px #8b93f8; /* Adds a stroke around the text */
 }
 
 .button {
@@ -114,13 +115,18 @@ div#right-side-container {
 
 div#info-container {
     position: absolute;
-    top:15%;
+    top:20%;
 }
 
 p#info-text {
     margin-top: -1em;
     padding: 1em;
     font-size: 1.5em;
+}
+
+h1#info-header {
+    -webkit-text-stroke: 2px #8b93f8; /* Adds a stroke around the text */
+    font-size: 4em;
 }
 
 
@@ -157,6 +163,7 @@ li:nth-child(odd):hover {
 h1#neighbors-header {
     width: 100%;
     margin: 0;
+    font-size: 4em;
     padding: 10px 0; /* Add padding for spacing */
     color: #f8f8fd; /* Text color */
     font-family: 'Mighty Souly', sans-serif;
@@ -211,10 +218,9 @@ li {
 
 
 
-/* #target-display {
+.node {
     position: absolute;
-    bottom: 50%;
-    left: 50%;
+    top: 5%;
     width: auto;
     padding: 10px 20px;
     background-color: #282c34;
@@ -226,3 +232,4 @@ li {
     text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     display: flex; /* Hides the target display by default */
+}

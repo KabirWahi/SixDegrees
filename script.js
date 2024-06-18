@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchNeighbors(data.source[0]);
             displayedNodes.add(data.source[0]);
             targetNode = data.target[0];
+            spawnSourceNode(data.source[1]);
         })
         .catch(error => console.error('Error fetching data:', error));
     });
@@ -61,9 +62,21 @@ function populateList(neighbors) {
         return a[1].localeCompare(b[1]);
     });
     neighbors.forEach(neighbor => {
-        const listItem = document.createElement('li');
-        listItem.textContent = neighbor[1]; // Assuming neighbor[1] is the display name
-        listItem.id = neighbor[0]; // Assuming neighbor[0] is the ID
-        neighborsList.appendChild(listItem);
+        if (!displayedNodes.has(neighbor[0])) {
+            const listItem = document.createElement('li');
+            listItem.textContent = neighbor[1]; // Assuming neighbor[1] is the display name
+            listItem.id = neighbor[0]; // Assuming neighbor[0] is the ID
+            neighborsList.appendChild(listItem);
+        }
     });
+}
+
+function spawnSourceNode(source) {
+    // Create a new node element
+    const node = document.createElement('h1');
+    node.className = 'node';
+    node.id = `current-node`;
+    node.textContent = source;
+    node.style.display = 'flex';
+    document.body.appendChild(node);
 }
