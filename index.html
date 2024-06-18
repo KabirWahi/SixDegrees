@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <title>Six Degrees</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,6 +14,19 @@
     <div id="button-container">
         <button class="button">Play</button>
     </div>
+    <div id="left-side-container">
+        <h1 id="neighbors-header">Neighbor's List</h1>
+        <ul class="scrollbar" id="neighbors-list"></ul>
+    </div>
+    <h1 id="target-display"></h1>
+    <div id="right-side-container">
+        <div id="info-container">
+            <h1 id="info-header">Info</h1>
+            <p id="info-text">Start your journey by selecting a teammate from the list of neighbors. Each selection will reveal new connections, helping you navigate through the football network to reach the target player. The goal? To see if you can to connect two players in 6 clicks or less. Happy exploring!
+        </div>
+        <div id="back-button">
+            <button class="button">Back</button>
+        </div>
     <script src="script.js"></script>
 </body>
 </html>
