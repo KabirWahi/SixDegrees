@@ -243,7 +243,7 @@ li {
     border: 1px solid var(--primary-color);
     border-radius: 8px;
     font-family: 'Mighty Souly', sans-serif;
-    font-size: 2em;
+    font-size: 2.5em;
     color: #f8f8fd;
     text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
@@ -300,4 +300,10 @@ li {
 
 .check:checked + .checkbox .slide {
   color: var(--text-color);
+}
+
+.arrow {
+    font-size: 2em;
+    color: var(--primary-color);
+    text-align: center;
 }
