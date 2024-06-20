@@ -230,6 +230,7 @@ li {
     -webkit-text-stroke: 2px var(--primary-color);
     display: none;
     justify-content: center;
+    z-index: -100;
 }
 
 

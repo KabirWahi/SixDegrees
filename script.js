@@ -15,10 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
         buttonContainer.style.display = 'none';
         checkbox.style.display = 'none';
 
-        fetch('http://127.0.0.1:5000/api/random')
+        fetch('https://six-degrees-api.vercel.app/api/football?path=endpoints')
         .then(response => response.json())
         .then(data => {
-            console.log(data);
             displayGame(data.target[1]);
             fetchNeighbors(data.source[0]);
             displayedNodes.add(data.source[0]);
@@ -84,10 +83,9 @@ function displayTarget(target) {
 }
 
 function fetchNeighbors(key) {
-    fetch(`http://127.0.0.1:5000/api/neighbors?key=${key}`)
+    fetch(`https://six-degrees-api.vercel.app/api/football?path=neighbors&key=${key}`)
     .then(response => response.json())
     .then(data => {
-        console.log(data);
         populateList(data.neighbors);
         })
     .catch(error => console.error('Error fetching neighbors:', error));
@@ -112,10 +110,8 @@ function populateList(neighbors) {
 
 function handleNeighborClick(id, name) {
     displayedNodes.add(id);
-    console.log(displayedNodes);
     spawnNode(name);
     if (targetNode === id || displayedNodes.size === 7) {
-        console.log('Game over');
         const neighborsList = document.getElementById('neighbors-list');
         neighborsList.innerHTML = '';
         neighborsList.style.borderRight = '0.3em solid var(--primary-color)';
