@@ -2,29 +2,25 @@ displayedNodes = new Set();
 targetNode = null;
 nodeList = [];
 arrowList = [];
+API_LIVE = false;
 
 document.addEventListener('DOMContentLoaded', () => {
+    fetch('https://six-degrees-api.vercel.app/api/football?path=ping')
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === 'pong') {
+            API_LIVE = true;
+        }
+    }).catch(error => console.error('Error fetching ping:', error));
+    
     const button = document.querySelector('.button');
-    const titleDiv = document.getElementById('title');
-    const buttonContainer = document.getElementById('button-container');
-    const checkbox = document.getElementById('checkbox');
-
 
     button.addEventListener('click', () => {
-        titleDiv.style.display = 'none';
-        buttonContainer.style.display = 'none';
-        checkbox.style.display = 'none';
-
-        fetch('https://six-degrees-api.vercel.app/api/football?path=endpoints')
-        .then(response => response.json())
-        .then(data => {
-            displayGame(data.target[1]);
-            fetchNeighbors(data.source[0]);
-            displayedNodes.add(data.source[0]);
-            targetNode = data.target[0];
-            spawnSourceNode(data.source[1]);
-        })
-        .catch(error => console.error('Error fetching data:', error));
+        if (!API_LIVE) {
+            alert('The Game is currently unavailable. Please try again later.');
+            return;
+        }
+        startGame();
     });
     
     var checkboxToggle = document.getElementById('checkbox-toggle');
@@ -35,31 +31,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const backButton = document.getElementById('back-button');
     backButton.addEventListener('click', () => {
-        const neighborsContainer = document.getElementById('right-side-container');
-        const leftSideContainer = document.getElementById('left-side-container');
-        const targetDisplay = document.getElementById('target-display');
-        buttonContainer.style.display = 'none';
-        neighborsContainer.style.display = 'none';
-        leftSideContainer.style.display = 'none';
-        targetDisplay.style.display = 'none';
-        for (let i = 0; i < nodeList.length; i++) {
-            const node = document.getElementById(nodeList[i]);
-            node.parentNode.removeChild(node);
-        }
-        nodeList = [];
-        for (let i = 0; i < arrowList.length; i++) {
-            const arrow = document.getElementById(arrowList[i]);
-            arrow.parentNode.removeChild(arrow);
-        }
-        arrowList = [];
-        displayedNodes.clear();
-        targetNode = null;
-
-        titleDiv.style.display = 'flex';
-        buttonContainer.style.display = 'flex';
-        checkbox.style.display = 'flex';
+        backToTitle();
     });
 });
+
+function startGame() {
+    displayTitle(false);
+    restartGame();
+}
+
+function displayTitle(bool) {
+    const display = bool ? 'flex' : 'none';
+    const titleDiv = document.getElementById('title');
+    const buttonContainer = document.getElementById('button-container');
+    const checkbox = document.getElementById('checkbox');
+
+    titleDiv.style.display = display;
+    buttonContainer.style.display = display;
+    checkbox.style.display = display;
+}
+
+
+function backToTitle() {
+    const rightSideContainer = document.getElementById('right-side-container');
+    const leftSideContainer = document.getElementById('left-side-container');
+    const targetDisplay = document.getElementById('target-display');
+    const neighborsList = document.getElementById('neighbors-list');
+    neighborsList.innerHTML = '';
+    rightSideContainer.style.display = 'none';
+    leftSideContainer.style.display = 'none';
+    targetDisplay.style.display = 'none';
+    resetVars();
+    displayTitle(true);
+}
+
+function resetVars() {
+    for (let i = 0; i < nodeList.length; i++) {
+        const node = document.getElementById(nodeList[i]);
+        node.parentNode.removeChild(node);
+    }
+    nodeList = [];
+    for (let i = 0; i < arrowList.length; i++) {
+        const arrow = document.getElementById(arrowList[i]);
+        arrow.parentNode.removeChild(arrow);
+    }
+    arrowList = [];
+    displayedNodes.clear();
+    targetNode = null;
+    const neighborsList = document.getElementById('neighbors-list');
+    neighborsList.style.removeProperty('border-right');
+}
+
 
 function displayGame(target) {
     displayLeft();
@@ -72,8 +94,8 @@ function displayLeft() {
 }
 
 function displayRight() {
-    const neighborsContainer = document.getElementById('right-side-container');
-    neighborsContainer.style.display = 'flex';
+    const rightSideContainer = document.getElementById('right-side-container');
+    rightSideContainer.style.display = 'flex';
 }
 
 function displayTarget(target) {
@@ -130,9 +152,31 @@ function handleNeighborClick(id, name) {
             loseMessage.style.webkitTextStroke = '2px var(--primary-color)';
             neighborsList.appendChild(loseMessage);
         }
+        const restartButton = document.createElement('button');
+        restartButton.textContent = 'Restart';
+        restartButton.className = 'button';
+        restartButton.style.padding = '0.5em 0.5em';
+        restartButton.addEventListener('click', () => {
+            restartGame();
+        });
+        neighborsList.appendChild(restartButton);
         return;
     }
     fetchNeighbors(id);
+}
+
+function restartGame() {
+    resetVars();
+    fetch('https://six-degrees-api.vercel.app/api/football?path=endpoints')
+    .then(response => response.json())
+    .then(data => {
+        displayGame(data.target[1]);
+        fetchNeighbors(data.source[0]);
+        displayedNodes.add(data.source[0]);
+        targetNode = data.target[0];
+        spawnSourceNode(data.source[1]);
+    })
+    .catch(error => console.error('Error fetching data:', error));
 }
 
 function spawnSourceNode(source) {

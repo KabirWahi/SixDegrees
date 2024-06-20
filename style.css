@@ -255,7 +255,7 @@ li {
   top: 0%;
   right: 0%;
   margin: 20px;
-  width: 223px;
+  width: 230px;
   height: 60px;
   background-color: #1d1f24;
   border-radius: 30px;
@@ -269,7 +269,7 @@ li {
 }
 
 .checkbox .toggle {
-  width: 100px;
+  width: 107px;
   height: 50px;
   position: absolute;
   border-radius: 30px;
@@ -289,7 +289,9 @@ li {
 }
 
 .checkbox .slide .text {
-  font-size: 16px;
+  text-align: center;
+  width: 75px;
+  font-size: 1em;
   z-index: 100;
   cursor: pointer;
 }
