@@ -158,6 +158,11 @@ function populateList(neighbors) {
 }
 
 function handleNeighborClick(id, name) {
+    const neighborsList = document.getElementById('neighbors-list');
+    for (let i = 0; i < neighborsList.children.length; i++) {
+        neighborsList.children[i].removeEventListener('click', () => {});
+        console.log(neighborsList.children[i]);
+    }
     if (!challenge) {
         const resetButton = document.getElementById('reset-button');
         resetButton.style.display = 'flex';
@@ -167,7 +172,6 @@ function handleNeighborClick(id, name) {
     displayedNodes.add(id);
     spawnNode(name);
     if (challenge && (targetNode === id || displayedNodes.size >= 7)) {
-        const neighborsList = document.getElementById('neighbors-list');
         neighborsList.innerHTML = '';
         neighborsList.style.borderRight = '0.3em solid var(--primary-color)';
         const message = document.createElement('h1');
@@ -204,6 +208,7 @@ function handleNeighborClick(id, name) {
             foldCount.style.left = '60%';
             foldCount.style.color = 'var(--text-color)';
             foldCount.style.webkitTextStroke = '2px var(--primary-color)';
+            foldCount.style.zIndex = '10';
             document.body.appendChild(foldCount);
         }
         foldCount.textContent = `+${foldedNodes} nodes`;
