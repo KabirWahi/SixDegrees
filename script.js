@@ -2,7 +2,9 @@ displayedNodes = new Set();
 targetNode = null;
 nodeList = [];
 arrowList = [];
+challenge = false;
 API_LIVE = false;
+foldedNodes = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
     fetch('https://six-degrees-api.vercel.app/api/football?path=ping')
@@ -27,11 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     checkboxToggle.addEventListener('change', function() {
         document.body.classList.toggle('red-theme');
+        challenge = !challenge;
     });
 
     const backButton = document.getElementById('back-button');
     backButton.addEventListener('click', () => {
         backToTitle();
+    });
+
+    const resetButton = document.getElementById('reset-button');
+    resetButton.addEventListener('click', () => {
+        restartGame();
     });
 });
 
@@ -57,6 +65,8 @@ function backToTitle() {
     const leftSideContainer = document.getElementById('left-side-container');
     const targetDisplay = document.getElementById('target-display');
     const neighborsList = document.getElementById('neighbors-list');
+    const resetButton = document.getElementById('reset-button');
+    resetButton.style.display = 'none';
     neighborsList.innerHTML = '';
     rightSideContainer.style.display = 'none';
     leftSideContainer.style.display = 'none';
@@ -80,22 +90,39 @@ function resetVars() {
     targetNode = null;
     const neighborsList = document.getElementById('neighbors-list');
     neighborsList.style.removeProperty('border-right');
+    foldedNodes = 0;
+    const foldCount = document.getElementById('fold-count');
+    if (foldCount != null) {
+        foldCount.parentNode.removeChild(foldCount);
+    }
 }
 
 
 function displayGame(target) {
     displayLeft();
     displayRight();
-    displayTarget(target);
+    if (challenge) {
+        displayTarget(target);
+    }
 }
 function displayLeft() {
     const searchContainer = document.getElementById('left-side-container');
     searchContainer.style.display = 'flex';
+    if (!challenge) {
+        const neighborsHeader = document.getElementById('neighbors-header');
+        neighborsHeader.textContent = 'Select Source';
+    }
 }
 
 function displayRight() {
     const rightSideContainer = document.getElementById('right-side-container');
     rightSideContainer.style.display = 'flex';
+    const infoText = document.getElementById('info-text');
+    if (challenge) {
+        infoText.textContent = 'Start your journey by selecting a teammate from the list of neighbors. Each selection will reveal new connections, helping you navigate through the football network to reach the target player. The goal? To see if you can to connect two players in 6 clicks or less. Happy exploring!';
+    } else {
+        infoText.textContent = 'Begin your exploration by selecting a teammate from the list of neighbors. Each selection will uncover new connections, allowing you to freely navigate through the football network without any target. Click as many times as you like and enjoy discovering the web of player connections. Happy exploring!';
+    }
 }
 
 function displayTarget(target) {
@@ -131,56 +158,121 @@ function populateList(neighbors) {
 }
 
 function handleNeighborClick(id, name) {
+    if (!challenge) {
+        const resetButton = document.getElementById('reset-button');
+        resetButton.style.display = 'flex';
+    }
+    const neighborsHeader = document.getElementById('neighbors-header');
+    neighborsHeader.textContent = 'Neighbors';
     displayedNodes.add(id);
     spawnNode(name);
-    if (targetNode === id || displayedNodes.size === 7) {
+    if (challenge && (targetNode === id || displayedNodes.size >= 7)) {
         const neighborsList = document.getElementById('neighbors-list');
         neighborsList.innerHTML = '';
         neighborsList.style.borderRight = '0.3em solid var(--primary-color)';
+        const message = document.createElement('h1');
         if (targetNode === id) {
-            const winMessage = document.createElement('h1');
-            winMessage.textContent = 'You win!';
-            winMessage.style.color = 'var(--text-color)';
-            winMessage.style.marginTop = '1em';
-            winMessage.style.webkitTextStroke = '2px var(--primary-color)';
-            neighborsList.appendChild(winMessage);
+            message.textContent = 'You win!';
         } else {
-            const loseMessage = document.createElement('h1');
-            loseMessage.textContent = 'You lose!';
-            loseMessage.style.color = 'var(--text-color)';
-            loseMessage.style.marginTop = '1em';
-            loseMessage.style.webkitTextStroke = '2px var(--primary-color)';
-            neighborsList.appendChild(loseMessage);
+            message.textContent = 'You lose!';
         }
+        message.style.color = 'var(--text-color)';
+        message.style.marginTop = '0.7em';
+        message.style.webkitTextStroke = '2px var(--primary-color)';
+        neighborsList.appendChild(message);
         const restartButton = document.createElement('button');
         restartButton.textContent = 'Restart';
         restartButton.className = 'button';
         restartButton.style.padding = '0.5em 0.5em';
+        restartButton.style.marginTop = '1em';
         restartButton.addEventListener('click', () => {
             restartGame();
         });
         neighborsList.appendChild(restartButton);
         return;
     }
+    if (!challenge && needWrap(displayedNodes.size)) {
+        wrapNodes();
+    }
+    if (foldedNodes > 0) {
+        let foldCount = document.getElementById('fold-count');
+        if (foldCount == null) {
+            foldCount = document.createElement('h1');
+            foldCount.id = 'fold-count';
+            foldCount.style.position = 'absolute';
+            foldCount.style.top = '10%';
+            foldCount.style.left = '60%';
+            foldCount.style.color = 'var(--text-color)';
+            foldCount.style.webkitTextStroke = '2px var(--primary-color)';
+            document.body.appendChild(foldCount);
+        }
+        foldCount.textContent = `+${foldedNodes} nodes`;
+    }
     fetchNeighbors(id);
+}
+
+function wrapNodes() {
+    nodeList.splice(1, 6).forEach(nodeId => {
+        const node = document.getElementById(nodeId);
+        document.body.removeChild(node);
+        foldedNodes++;
+    });
+    arrowList.forEach(arrowId => {
+        const arrow = document.getElementById(arrowId);
+        document.body.removeChild(arrow);
+    });
+    arrowList = [];
+    nodeList.splice(1, 1).forEach(nodeId => {
+        const node = document.getElementById(nodeId);
+        const name = node.textContent;
+        spawnNode(name);
+        document.body.removeChild(node);
+    });
+}
+
+function needWrap(size) {
+    if (size > 6 && size % 6 === 2) {
+        return true;
+    }
+    return false;
 }
 
 function restartGame() {
     resetVars();
-    fetch('https://six-degrees-api.vercel.app/api/football?path=endpoints')
-    .then(response => response.json())
-    .then(data => {
-        displayGame(data.target[1]);
-        fetchNeighbors(data.source[0]);
-        displayedNodes.add(data.source[0]);
-        targetNode = data.target[0];
-        spawnSourceNode(data.source[1]);
-    })
-    .catch(error => console.error('Error fetching data:', error));
+    if (challenge) {
+        fetch('https://six-degrees-api.vercel.app/api/football?path=endpoints')
+        .then(response => response.json())
+        .then(data => {
+            fetchNeighbors(data.source[0]);
+            displayGame(data.target[1]);
+            displayedNodes.add(data.source[0]);
+            targetNode = data.target[0];
+            spawnNode(data.source[1]);
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    } else {
+        fetch('https://six-degrees-api.vercel.app/api/football?path=playerlist')
+        .then(response => response.json())
+        .then(data => {
+            populateSourceList(data);
+            displayGame('');
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    }
 }
 
-function spawnSourceNode(source) {
-    spawnNode(source);
+function populateSourceList(players) {
+    const neighborsList = document.getElementById('neighbors-list');
+    neighborsList.innerHTML = '';  // Clear previous content
+    Object.entries(players)
+        .sort((a, b) => a[1].localeCompare(b[1]))
+        .forEach(([id, name]) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = name;
+            listItem.id = id;
+            listItem.addEventListener('click', () => handleNeighborClick(id, name));
+            neighborsList.appendChild(listItem);
+        });
 }
 
 function spawnNode(name, id = `node-${displayedNodes.size}`) {
@@ -188,12 +280,12 @@ function spawnNode(name, id = `node-${displayedNodes.size}`) {
     node.className = 'node';
     node.id = id;
     node.textContent = name;
-    node.style.top = `${5 + (displayedNodes.size-1) * 12}%`; // Adjust the vertical position based on the number of nodes
+    node.style.top = `${5 + (nodeList.length) * 12}%`; // Adjust the vertical position based on the number of nodes
     node.style.display = 'flex';
     document.body.appendChild(node);
     nodeList.push(id);
-    if (displayedNodes.size > 1) {
-        drawArrow(displayedNodes.size - 2);
+    if (nodeList.length > 1) {
+        drawArrow(nodeList.length - 2);
     }
 }
 
