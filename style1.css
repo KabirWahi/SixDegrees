@@ -1,0 +1,133 @@
+@font-face {
+    font-family: 'Mighty Souly';
+    src: url('fonts/MightySouly-lxggD.ttf') format('truetype'); /* Adjust the path as necessary */
+    font-weight: lighter;
+    font-style: normal;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&display=swap');
+
+:root {
+    --primary-color: #8b93f8;  /* Blue */
+    --background-color: #282c34;
+    --button-color: #0011ff;
+    --text-color: #f8f8fd;
+    --button-hover-color: #646fff;
+    --button-shadow-color: #1f35ff;
+}
+
+.red-theme {
+    --primary-color: #ef6872;
+    --button-color: #E63946;
+    --button-hover-color: #ee4651;
+    --button-shadow-color: #85373d;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    overflow: hidden;
+    font-family: 'Mighty Souly', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column; /* Organizes content vertically */
+    height: 100vh; /* Takes full height of the viewport */
+}
+
+h1 {
+    font-size: 5vw;
+    margin: 0; /* Removes default margin to help centering */
+    font-weight: lighter;
+}
+
+h2 {
+    font-size: 3vw;
+    margin: 0; /* Removes default margin to help centering */
+    font-weight: lighter;
+}
+
+div#button-container {
+    display: flex;
+    justify-content: center;
+    width: 100%; /* Takes full width of its container */
+    /* display: none; */
+}
+
+/* div#title {
+    display: none;
+} */
+
+.button {
+    cursor: pointer;
+    font-size: larger;
+    font-family: inherit;
+    color: var(--button-color);
+    background-color: var(--text-color);
+    padding: 1vw 3vw;
+    border-radius: 2vw;
+    border: 0.3vw solid var(--primary-color);
+    box-shadow: 0vw 0.4vw var(--button-shadow-color);
+    font-size: 1vw;
+}
+
+.button:active {
+    position: relative;
+    top: 0.4vw;
+    border: 0.3vw solid var(--button-hover-color);
+    box-shadow: 0vw 0vw;
+}
+
+.checkbox {
+    top: 0%;
+    right: 0%;
+    margin: 2vw;
+    width: 12.3vw;
+    height: 3.2vw;
+    background-color: #1d1f24;
+    border-radius: 1.5vw;
+    position: absolute;
+    color: var(--text-color);
+    overflow: hidden;
+  }
+  
+  #checkbox-toggle {
+    display: none;
+  }
+  
+  .checkbox .toggle {
+    width: 5.7vw;
+    height: 2.55vw;
+    position: absolute;
+    border-radius: 1.3vw;
+    left: 0.3vw;
+    cursor: pointer;
+    background: var(--primary-color);
+    transition: 0.4s;
+  }
+  
+  .checkbox .slide {
+    width: 12.3vw;
+    height: 3.2vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    cursor: pointer;
+  }
+  
+  .checkbox .slide .text {
+    text-align: center;
+    width: 6vw;
+    font-size: 0.8vw;
+    z-index: 100;
+    cursor: pointer;
+  }
+  
+  .check:checked + .checkbox .slide .toggle {
+    transform: translateX(6vw);
+    background: var(--primary-color);
+  }
+  
+  .check:checked + .checkbox .slide {
+    color: var(--text-color);
+  }
