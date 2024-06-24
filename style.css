@@ -5,6 +5,8 @@
     font-style: normal;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&display=swap');
+
 :root {
     --primary-color: #8b93f8;  /* Blue */
     --background-color: #282c34;
@@ -30,24 +32,17 @@ body {
     justify-content: center;
     align-items: center;
     flex-direction: column; /* Organizes content vertically */
-}
-
-body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
+    height: 100vh; /* Takes full height of the viewport */
 }
 
 h1 {
-    font-family: 'Mighty Souly', sans-serif;
-    font-size: 5em;
+    font-size: 5vw;
     margin: 0; /* Removes default margin to help centering */
     font-weight: lighter;
 }
 
 h2 {
-    font-family: 'Mighty Souly', sans-serif;
-    font-size: 4em;
+    font-size: 3vw;
     margin: 0; /* Removes default margin to help centering */
     font-weight: lighter;
 }
@@ -56,13 +51,12 @@ div#button-container {
     display: flex;
     justify-content: center;
     width: 100%; /* Takes full width of its container */
+    /* display: none; */
 }
 
-div#title {
-    margin: 0.5em;
-    text-align: center; /* Centers the text inside the title div */
-    -webkit-text-stroke: 2px var(--primary-color)
-}
+/* div#title {
+    display: none;
+} */
 
 .button {
     cursor: pointer;
@@ -70,48 +64,87 @@ div#title {
     font-family: inherit;
     color: var(--button-color);
     background-color: var(--text-color);
-    padding: 1em 3em;
-    border-radius: 50em;
-    border: 6px solid var(--primary-color);
-    box-shadow: 0px 8px var(--button-shadow-color);
-    margin: 0.5em; /* Adds margin around the button */
+    padding: 1vw 3vw;
+    border-radius: 2vw;
+    border: 0.3vw solid var(--primary-color);
+    box-shadow: 0vw 0.4vw var(--button-shadow-color);
+    font-size: 1vw;
 }
 
 .button:active {
     position: relative;
-    top: 8px;
-    border: 6px solid var(--button-hover-color);
-    box-shadow: 0px 0px;
+    top: 0.4vw;
+    border: 0.3vw solid var(--button-hover-color);
+    box-shadow: 0vw 0vw;
 }
 
-h2 {
-    font-size: 3em;
-}
+.checkbox {
+    top: 0%;
+    right: 0%;
+    margin: 2vw;
+    width: 12.3vw;
+    height: 3.2vw;
+    background-color: #1d1f24;
+    border-radius: 1.5vw;
+    position: absolute;
+    color: var(--text-color);
+    overflow: hidden;
+  }
+  
+  #checkbox-toggle {
+    display: none;
+  }
+  
+  .checkbox .toggle {
+    width: 5.7vw;
+    height: 2.55vw;
+    position: absolute;
+    border-radius: 1.3vw;
+    left: 0.3vw;
+    cursor: pointer;
+    background: var(--primary-color);
+    transition: 0.4s;
+  }
+  
+  .checkbox .slide {
+    width: 12.3vw;
+    height: 3.17vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    cursor: pointer;
+  }
+  
+  .checkbox .slide .text {
+    text-align: center;
+    width: 6vw;
+    font-size: 0.8vw;
+    z-index: 100;
+    cursor: pointer;
+  }
+  
+  .check:checked + .checkbox .slide .toggle {
+    transform: translateX(6vw);
+    background: var(--primary-color);
+  }
+  
+  .check:checked + .checkbox .slide {
+    color: var(--text-color);
+  }
 
-/* Media query for responsiveness */
-@media (max-width: 600px) {
-    .button {
-        padding: 0.5em 1.5em; /* Reduces padding on smaller screens */
-    }
-    h1, h2 {
-        font-size: 2em; /* Reduces font size on smaller screens */
-    }
-}
 
-
-div#left-side-container {
+  div#left-side-container {
     position: absolute;
     top: 0;
     left: 0;
     width: 20%;
     height: 100vh;
-    display: flex;
+    display: none;
     flex-direction: column;
     text-align: center;
     padding: 0;
     box-sizing: border-box;
-    display: none; /* Hides the left side container by default */
-    margin-left: 0.5em;
+    margin: 1.5vw;
 }
 
 div#right-side-container {
@@ -120,57 +153,21 @@ div#right-side-container {
     right: 0;
     width: 20%;
     height: 100vh;
-    display: flex;
+    display: none;
+    flex-direction: column;
     text-align: center;
     padding: 10px;
     box-sizing: border-box;
-    display: none; /* Hides the right side container by default */
-    margin-right: 0.5em;
-    flex-direction: column;
+    margin: 1.5vw;
 }
-
-div#info-container {
-    position: absolute;
-    top:20%;
-}
-
-p#info-text {
-    margin-top: -1em;
-    padding: 1em;
-    font-size: 1.5em;
-}
-
-h1#info-header {
-    -webkit-text-stroke: 2px var(--primary-color);
-    font-size: 4em;
-}
-
-
-div#back-button {
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    width: 100%; /* Takes full width of its container */
-    bottom: 0;
-    margin-bottom: 1em;
-}
-
-#reset-button {
-    position: absolute;
-    bottom: 0;
-    width: 20%;
-    display: none;
-    justify-content: center;
-    margin-bottom: 1em;
-}
-
 
 li {
+    padding: 0.3vw 0vw;
     margin-top: 0;
     cursor: pointer; /* Changes the cursor to a pointer to indicate clickability */
     transition: background-color 0.3s; /* Smooth transition for background color change */
     background-color: #282c34; /* Initial background color */
-    border-bottom: 1px solid var(--primary-color);
+    border-bottom: 0.1vw solid var(--primary-color);
 }
 
 li:hover {
@@ -188,44 +185,37 @@ li:nth-child(odd):hover {
 h1#neighbors-header {
     width: 100%;
     margin: 0;
-    font-size: 4em;
-    padding: 10px 0; /* Add padding for spacing */
-    color: #f8f8fd; /* Text color */
-    font-family: 'Mighty Souly', sans-serif;
-    -webkit-text-stroke: 2px var(--primary-color);
+    font-size: 3vw;
+    color: #f8f8fd;
 }
 
 .scrollbar {
-    height: calc(100% - 60px); /* Adjusted height to account for the header */
     width: 100%;
     overflow: auto;
     list-style-type: none;
-    box-sizing: border-box; /* Includes padding in the width and height calculation */
-    border-top: 0.3em solid var(--primary-color);
-    border-bottom: 0.3em solid var(--primary-color);
-    border-left: 0.3em solid var(--primary-color);
-    border-radius: 8px; /* Smooth rounded corners */
-    font-size: 2em;
-    padding: 0px 10px 10px 10px;
-    margin-top: 0;
-    margin-bottom: 0.5em;
+    box-sizing: border-box;
+    border-top: 0.5vw solid var(--primary-color);
+    border-bottom: 0.5vw solid var(--primary-color);
+    border-left: 0.5vw solid var(--primary-color);
+    border-radius: 0.5vw;
+    font-size: 1.5vw;
+    padding: 0vw;
+    margin-top: 25%;
+    margin-bottom: 10%;
+    overflow-y: scroll; /* Force the scrollbar to always be visible */
+    min-height: 78%;
 }
 
 /* Scrollbar styles remain unchanged */
 .scrollbar::-webkit-scrollbar {
-    width: 0.3em;
+    width: 0.5vw;
 }
 .scrollbar::-webkit-scrollbar-track {
     background-color: var(--primary-color);
 }
 .scrollbar::-webkit-scrollbar-thumb {
-    border-radius: 8px;
+    border-radius: 0.5vw;
     background-color: var(--text-color);
-}
-
-li {
-    margin-top: 0;
-    padding: 5px 0;
 }
 
 #target-display {
@@ -233,89 +223,64 @@ li {
     bottom: 0;
     width: 100vw;
     margin: 0;
-    padding: 10px 0; /* Add padding for spacing */
-    color: #f8f8fd; /* Text color */
-    font-family: 'Mighty Souly', sans-serif;
-    -webkit-text-stroke: 2px var(--primary-color);
-    display: none;
+    /* padding: 10px 0; */
+    color: #f8f8fd;
+    /* -webkit-text-stroke: 2px var(--primary-color); */
     justify-content: center;
     z-index: -100;
+    display: none;
+    font-size: 3.5vw;
 }
 
+div#info-container {
+    position: absolute;
+    top:25%;
+}
 
+p#info-text {
+    margin: 0;
+    font-size: 1vw;
+}
+
+h1#info-header {
+    font-size: 3vw;
+}
+
+div#back-button {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    width: 100%; /* Takes full width of its container */
+    bottom: 0;
+    margin-bottom: 2.5vw;
+}
 
 .node {
     position: absolute;
-    top: 5%;
     width: auto;
-    padding: 10px 20px;
+    padding: 1.5vh 3vh;
     background-color: var(--background-color);
-    border: 1px solid var(--primary-color);
-    border-radius: 8px;
+    border: 0.4vh solid var(--primary-color);
+    border-radius: 2.5vh;
     font-family: 'Mighty Souly', sans-serif;
-    font-size: 2.5em;
+    font-size: 4vh;
     color: #f8f8fd;
     text-align: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-    display: flex; /* Hides the target display by default */
-}
-
-.checkbox {
-  top: 0%;
-  right: 0%;
-  margin: 20px;
-  width: 230px;
-  height: 60px;
-  background-color: #1d1f24;
-  border-radius: 30px;
-  position: absolute;
-  color: var(--text-color);
-  overflow: hidden;
-}
-
-#checkbox-toggle {
-  display: none;
-}
-
-.checkbox .toggle {
-  width: 107px;
-  height: 50px;
-  position: absolute;
-  border-radius: 30px;
-  left: 5px;
-  cursor: pointer;
-  background: var(--primary-color);
-  transition: 0.4s;
-}
-
-.checkbox .slide {
-  width: 230px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  cursor: pointer;
-}
-
-.checkbox .slide .text {
-  text-align: center;
-  width: 75px;
-  font-size: 1em;
-  z-index: 100;
-  cursor: pointer;
-}
-
-.check:checked + .checkbox .slide .toggle {
-  transform: translateX(113px);
-  background: var(--primary-color);
-}
-
-.check:checked + .checkbox .slide {
-  color: var(--text-color);
+    box-shadow: 0 0.5vh 1vh rgba(0, 0, 0, 0.5);
+    display: flex;
 }
 
 .arrow {
-    font-size: 2em;
+    font-size: 4.5vh;
     color: var(--primary-color);
     text-align: center;
+}
+
+#reset-button {
+    position: absolute;
+    bottom: 0;
+    width: 20%;
+    display: none;
+    justify-content: center;
+    margin-bottom: 1vw;
 }

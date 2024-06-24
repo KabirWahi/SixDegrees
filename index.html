@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <title>Six Degrees</title>
-    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <input id="checkbox-toggle" type="checkbox" class="check" onclick="explorerChallengerToggle()">
@@ -27,17 +27,17 @@
         <ul class="scrollbar" id="neighbors-list"></ul>
     </div>
     <h1 id="target-display"></h1>
-    <!-- <div id="reset-button">
-        <button class="button">Reset</button>
-    </div> -->
+    <div id="reset-button">
+        <button class="button" onclick="restartGame()">Reset</button>
+    </div>
     <div id="right-side-container">
         <div id="info-container">
             <h1 id="info-header">Instructions</h1>
             <p id="info-text"></p>
         </div>
         <div id="back-button">
-            <button class="button">Back</button>
+            <button class="button" onclick="backToTitle()">Back</button>
         </div>
-    <script src="script1.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
