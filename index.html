@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <title>Six Degrees</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style1.css">
 </head>
 <body>
-    <input id="checkbox-toggle" type="checkbox" class="check">
+    <input id="checkbox-toggle" type="checkbox" class="check" onclick="explorerChallengerToggle()">
     <div class="checkbox" id="checkbox">
       <label class="slide" for="checkbox-toggle">
         <label class="toggle" for="checkbox-toggle"></label>
@@ -20,16 +20,16 @@
         <h1>Six Degrees of Football</h1>
     </div>
     <div id="button-container">
-        <button class="button">Play</button>
+        <button class="button" onclick="startGameButton()">Play</button>
     </div>
     <div id="left-side-container">
         <h1 id="neighbors-header">Neighbors</h1>
         <ul class="scrollbar" id="neighbors-list"></ul>
     </div>
     <h1 id="target-display"></h1>
-    <div id="reset-button">
+    <!-- <div id="reset-button">
         <button class="button">Reset</button>
-    </div>
+    </div> -->
     <div id="right-side-container">
         <div id="info-container">
             <h1 id="info-header">Instructions</h1>
@@ -38,6 +38,6 @@
         <div id="back-button">
             <button class="button">Back</button>
         </div>
-    <script src="script.js"></script>
+    <script src="script1.js"></script>
 </body>
 </html>
