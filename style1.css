@@ -131,3 +131,124 @@ div#button-container {
   .check:checked + .checkbox .slide {
     color: var(--text-color);
   }
+
+
+  div#left-side-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    padding: 0;
+    box-sizing: border-box;
+    margin: 1.5vw;
+}
+
+div#right-side-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    padding: 10px;
+    box-sizing: border-box;
+    margin: 1.5vw;
+}
+
+li {
+    padding: 0.3vw 0vw;
+    margin-top: 0;
+    cursor: pointer; /* Changes the cursor to a pointer to indicate clickability */
+    transition: background-color 0.3s; /* Smooth transition for background color change */
+    background-color: #282c34; /* Initial background color */
+    border-bottom: 0.1vw solid var(--primary-color);
+}
+
+li:hover {
+    background-color: #3a3f4a; /* Darker shade on hover for interactivity */
+}
+
+li:nth-child(odd) {
+    background-color: #2f3340; /* Slightly different background for odd items */
+}
+
+li:nth-child(odd):hover {
+    background-color: #414856; /* Slightly different hover effect for odd items */
+}
+
+h1#neighbors-header {
+    width: 100%;
+    margin: 0;
+    font-size: 3vw;
+    color: #f8f8fd;
+}
+
+.scrollbar {
+    width: 100%;
+    overflow: auto;
+    list-style-type: none;
+    box-sizing: border-box;
+    border-top: 0.5vw solid var(--primary-color);
+    border-bottom: 0.5vw solid var(--primary-color);
+    border-left: 0.5vw solid var(--primary-color);
+    border-radius: 0.5vw;
+    font-size: 1.5vw;
+    padding: 0vw;
+    margin-top: 25%;
+    margin-bottom: 10%;
+    overflow-y: scroll; /* Force the scrollbar to always be visible */
+}
+
+/* Scrollbar styles remain unchanged */
+.scrollbar::-webkit-scrollbar {
+    width: 0.5vw;
+}
+.scrollbar::-webkit-scrollbar-track {
+    background-color: var(--primary-color);
+}
+.scrollbar::-webkit-scrollbar-thumb {
+    border-radius: 0.5vw;
+    background-color: var(--text-color);
+}
+
+#target-display {
+    position: absolute;
+    bottom: 0;
+    width: 100vw;
+    margin: 0;
+    /* padding: 10px 0; */
+    color: #f8f8fd;
+    /* -webkit-text-stroke: 2px var(--primary-color); */
+    justify-content: center;
+    z-index: -100;
+    display: flex;
+}
+
+div#info-container {
+    position: absolute;
+    top:25%;
+}
+
+p#info-text {
+    margin: 0;
+    font-size: 1vw;
+}
+
+h1#info-header {
+    font-size: 3vw;
+}
+
+div#back-button {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    width: 100%; /* Takes full width of its container */
+    bottom: 0;
+    margin-bottom: 2.5vw;
+}
