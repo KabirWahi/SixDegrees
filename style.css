@@ -145,6 +145,7 @@ div#button-container {
     padding: 0;
     box-sizing: border-box;
     margin: 1.5vw;
+    align-items: center;
 }
 
 div#right-side-container {
@@ -182,13 +183,6 @@ li:nth-child(odd):hover {
     background-color: #414856; /* Slightly different hover effect for odd items */
 }
 
-h1#neighbors-header {
-    width: 100%;
-    margin: 0;
-    font-size: 3vw;
-    color: #f8f8fd;
-}
-
 .scrollbar {
     width: 100%;
     overflow: auto;
@@ -200,10 +194,10 @@ h1#neighbors-header {
     border-radius: 0.5vw;
     font-size: 1.5vw;
     padding: 0vw;
-    margin-top: 25%;
+    margin-top: 5%;
     margin-bottom: 10%;
     overflow-y: scroll; /* Force the scrollbar to always be visible */
-    min-height: 78%;
+    min-height: 84%;
 }
 
 /* Scrollbar styles remain unchanged */
@@ -224,7 +218,7 @@ h1#neighbors-header {
     width: 100vw;
     margin: 0;
     /* padding: 10px 0; */
-    color: #f8f8fd;
+    color: var(--text-color);
     /* -webkit-text-stroke: 2px var(--primary-color); */
     justify-content: center;
     z-index: -100;
@@ -264,7 +258,7 @@ div#back-button {
     border-radius: 2.5vh;
     font-family: 'Mighty Souly', sans-serif;
     font-size: 4vh;
-    color: #f8f8fd;
+    color: var(--text-color);
     text-align: center;
     box-shadow: 0 0.5vh 1vh rgba(0, 0, 0, 0.5);
     display: flex;
@@ -284,3 +278,22 @@ div#back-button {
     justify-content: center;
     margin-bottom: 1vw;
 }
+
+.input {
+    font-family: 'Mighty Souly';
+    color: var(--text-color);
+    width: 90%;
+    background-color: #1d1f24;
+    border-radius: 0.5vw;
+    text-align: center;
+    padding: 0.5vw;
+    border: 0.2vw solid transparent;
+    font-size: 2vw;
+    transition: border-color .3s cubic-bezier(.25,.01,.25,1) 0s, color .3s cubic-bezier(.25,.01,.25,1) 0s, background .2s cubic-bezier(.25,.01,.25,1) 0s;
+    margin-top: 0.5vw;
+  }
+  
+  .input:hover, .input:focus, .input-group:hover .input {
+    outline: none;
+    border-color: var(--primary-color);
+  }

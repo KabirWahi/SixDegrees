@@ -73,8 +73,6 @@ function displayGame(target, neighbors) {
 }
 
 function displayExplorerGame(players) {
-    const neighborsHeader = document.getElementById('neighbors-header');
-    neighborsHeader.textContent = 'Select Source';
     const searchContainer = document.getElementById('left-side-container');
     const neighborsList = document.getElementById('neighbors-list');
     neighborsList.innerHTML = '';  // Clear previous content
@@ -130,6 +128,8 @@ function displayTarget(target) {
 function handleNeighborClick(id, name) {
     const neighborsList = document.getElementById('neighbors-list');
     neighborsList.innerHTML = '';  // Clear previous content
+    const search = document.getElementById('search-input');
+    search.value = '';
     if (!challenge) {
         if (nodeList.length > 6 && nodeList.length % 6 === 1) {
             nodeList.splice(1, 7).forEach(nodeId => {
@@ -202,8 +202,6 @@ function handleNeighborClick(id, name) {
 }
 
 function handleSourceClick(id, name) {
-    const neighborsHeader = document.getElementById('neighbors-header');
-    neighborsHeader.textContent = 'Neighbors';
     const resetButton = document.getElementById('reset-button');
     resetButton.style.display = 'flex';
     handleNeighborClick(id, name);
@@ -280,4 +278,25 @@ function notDisplayGame() {
     searchContainer.style.display = 'none';
     rightSideContainer.style.display = 'none';
     targetDisplay.style.display = 'none';
+}
+
+function filterPlayer() {
+    const input = document.getElementById('search-input');
+    const filter = input.value.toUpperCase();
+    const neighborsList = document.getElementById('neighbors-list');
+    const neighbors = neighborsList.getElementsByTagName('li');
+    for (let i = 0; i < neighbors.length; i++) {
+        const name = neighbors[i].textContent;
+        const normalizedFilter = normalizeString(filter);
+        const normalizedName = normalizeString(name);
+        if (normalizedName.includes(normalizedFilter)) {
+            neighbors[i].style.display = '';
+        } else {
+            neighbors[i].style.display = 'none';
+        }
+    }
+}
+
+function normalizeString(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
 }

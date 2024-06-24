@@ -23,7 +23,7 @@
         <button class="button" onclick="startGameButton()">Play</button>
     </div>
     <div id="left-side-container">
-        <h1 id="neighbors-header">Neighbors</h1>
+        <input autocomplete="off" id="search-input" class="input" type="text" placeholder="Search Player" oninput="filterPlayer()">
         <ul class="scrollbar" id="neighbors-list"></ul>
     </div>
     <h1 id="target-display"></h1>
