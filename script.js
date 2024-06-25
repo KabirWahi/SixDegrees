@@ -7,7 +7,7 @@ API_LIVE = false;
 foldedNodes = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetch('https://six-degrees-api.vercel.app/api/football?path=ping')
+    fetch('https://api.sixdegrees.kabirwahi.com/api/football?path=ping')
     .then(response => response.json())
     .then(data => {
         if (data.message === 'pong') {
@@ -43,11 +43,11 @@ function titleDisplay(bool) {
 
 function startGame() {
     if (challenge) {
-        fetch('https://six-degrees-api.vercel.app/api/football?path=endpoints')
+        fetch('https://api.sixdegrees.kabirwahi.com/api/football?path=endpoints')
         .then(response => response.json())
         .then(endpoints => {
             const key = endpoints.source[0];
-            fetch(`https://six-degrees-api.vercel.app/api/football?path=neighbors&key=${key}`)
+            fetch(`https://api.sixdegrees.kabirwahi.com/api/football?path=neighbors&key=${key}`)
             .then(response => response.json())
             .then(data => {
                 displayGame(endpoints.target[1], data.neighbors);
@@ -57,7 +57,7 @@ function startGame() {
         })
         .catch(error => console.error('Error fetching endpoints:', error));
     } else {
-        fetch('https://six-degrees-api.vercel.app/api/football?path=playerlist')
+        fetch('https://api.sixdegrees.kabirwahi.com/api/football?path=playerlist')
         .then(response => response.json())
         .then(data => {
             displayExplorerGame(data);
@@ -193,7 +193,7 @@ function handleNeighborClick(id, name) {
         }
         foldCount.textContent = `+${foldedNodes} nodes`;
     }
-    fetch(`https://six-degrees-api.vercel.app/api/football?path=neighbors&key=${id}`)
+    fetch(`https://api.sixdegrees.kabirwahi.com/api/football?path=neighbors&key=${id}`)
     .then(response => response.json())
     .then(data => {
         displayLeft(data.neighbors);
