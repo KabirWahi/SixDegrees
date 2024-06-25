@@ -7,3 +7,6 @@ Six Degrees of Football is an engaging web game that explores connections within
 - **Explorer Mode**: Navigate freely through the football network, exploring connections without a predefined goal.
 - **Challenger Mode**: Connect two players in six steps or fewer, using strategic thinking to traverse the network.
 - **Real-Time Data**: Uses live data for players from the Premier League, La Liga, Serie A, Bundesliga, and Ligue 1 spanning from 2010 up to the 2023/24 season.
+
+## Play the Game
+Access the game at [Six Degrees of Football](https://sixdegrees.kabirwahi.com) to start exploring the football connections now.
