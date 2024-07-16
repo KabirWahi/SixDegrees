@@ -159,7 +159,7 @@ div#button-container {
   .checkbox .slide .text {
     text-align: center;
     width: 6vw;
-    font-size: 0.8vw;
+    font-size: 1vw;
     z-index: 100;
     cursor: pointer;
   }
