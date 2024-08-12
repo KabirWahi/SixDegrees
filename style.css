@@ -1,8 +1,6 @@
 @font-face {
-    font-family: 'Mighty Souly';
-    src: url('fonts/SunnyspellsRegular-MV9ze.otf') format('truetype'); /* Adjust the path as necessary */
-    font-weight: lighter;
-    font-style: normal;
+    font-family: 'WellFleet';
+    src: url('fonts/Wellfleet-Regular.ttf') format('truetype');
 }
 
 :root {
@@ -68,7 +66,7 @@ body {
     background-color: var(--background-color);
     color: var(--text-color);
     overflow: hidden;
-    font-family: 'Mighty Souly', sans-serif;
+    font-family: 'WellFleet', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -159,7 +157,7 @@ div#button-container {
   .checkbox .slide .text {
     text-align: center;
     width: 6vw;
-    font-size: 1vw;
+    font-size: 0.8vw;
     z-index: 100;
     cursor: pointer;
   }
@@ -233,7 +231,7 @@ li:nth-child(odd):hover {
     border-bottom: 0.5vw solid var(--primary-color);
     border-left: 0.5vw solid var(--primary-color);
     border-radius: 0.5vw;
-    font-size: 2vw;
+    font-size: 1.6vw;
     padding: 0vw;
     margin-top: 5%;
     margin-bottom: 10%;
@@ -274,11 +272,11 @@ div#info-container {
 
 p#info-text {
     margin: 0;
-    font-size: 1.1vw;
+    font-size: 1vw;
 }
 
 h1#info-header {
-    font-size: 4vw;
+    font-size: 3vw;
 }
 
 div#back-button {
@@ -297,7 +295,7 @@ div#back-button {
     background-color: var(--background-color);
     border: 0.4vh solid var(--primary-color);
     border-radius: 2.5vh;
-    font-family: 'Mighty Souly', sans-serif;
+    font-family: 'WellFleet', sans-serif;
     font-size: 4vh;
     color: var(--text-color);
     text-align: center;
@@ -321,7 +319,7 @@ div#back-button {
 }
 
 .input {
-    font-family: 'Mighty Souly';
+    font-family: 'WellFleet', sans-serif;
     color: var(--text-color);
     width: 90%;
     background-color: #1d1f24;
@@ -329,7 +327,7 @@ div#back-button {
     text-align: center;
     padding: 0.5vw;
     border: 0.2vw solid transparent;
-    font-size: 2vw;
+    font-size: 1.8vw;
     transition: border-color .3s cubic-bezier(.25,.01,.25,1) 0s, color .3s cubic-bezier(.25,.01,.25,1) 0s, background .2s cubic-bezier(.25,.01,.25,1) 0s;
     margin-top: 0.5vw;
   }
