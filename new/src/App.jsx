@@ -9,24 +9,70 @@ import {
   Link,
   Stack,
   Text,
+  SimpleGrid,
 } from '@chakra-ui/react';
 
 const App = () => {
   const [view, setView] = useState('home');
 
-  if (view !== 'home') {
+  if (view === 'modes') {
     return (
-      <Box minH="100vh" display="grid" placeItems="center" bg="surface.900" px={4}>
-        <Stack spacing={6} align="center" textAlign="center">
-          <Heading size="lg" color="gray.100">
-            {view === 'modes'
-              ? 'Mode selection is on the way.'
-              : 'Learn more content coming soon.'}
-          </Heading>
-          <Button onClick={() => setView('home')} colorScheme="brand" size="lg" borderRadius="full">
-            Return Home
-          </Button>
-        </Stack>
+      <Box minH="100vh" bg="#0B0E17" position="relative">
+        <Button
+          position="absolute"
+          top={{ base: 4, md: 6 }}
+          left={{ base: 4, md: 8 }}
+          colorScheme="brand"
+          borderRadius="full"
+          onClick={() => setView('home')}
+          zIndex={1}
+        >
+          ← Back
+        </Button>
+        <Container
+          maxW="6xl"
+          minH="100vh"
+          display="flex"
+          alignItems="center"
+          py={{ base: 16, md: 24 }}
+        >
+          <Stack spacing={12} w="full" mt={{ base: 16, md: -10 }}>
+            <Stack spacing={2} textAlign={{ base: 'left', md: 'center' }} mx="auto">
+              <Heading size={{ base: 'lg', md: 'xl' }} color="#E4E8FF">
+                Choose Mode
+              </Heading>
+              <Text fontSize={{ base: 'md', md: 'lg' }} color="#9CA3AF">
+                Three ways to play
+              </Text>
+            </Stack>
+            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={{ base: 6, md: 8 }}>
+              {[
+                {
+                  label: 'Explorer',
+                  description: 'Free graph exploration',
+                  accent: '#38E8C6',
+                },
+                {
+                  label: 'Time Trial',
+                  description: 'Beat the clock',
+                  accent: '#FF5A7E',
+                },
+                {
+                  label: 'Quick Play',
+                  description: 'Random player challenge',
+                  accent: '#FFC54D',
+                },
+              ].map(({ label, description, accent }) => (
+                <ModeCardButton
+                  key={label}
+                  accent={accent}
+                  label={label}
+                  description={description}
+                />
+              ))}
+            </SimpleGrid>
+          </Stack>
+        </Container>
       </Box>
     );
   }
@@ -100,20 +146,16 @@ const App = () => {
                 Learn More
               </Link>
             </HStack>
-            <Text fontSize="sm" color="#6f768a" letterSpacing="wide">
-              13 seasons • 25,000 players • 5 leagues
-            </Text>
           </Stack>
 
           <Box
-            flex="1"
-            maxW={{ base: '100%', lg: '460px' }}
+            flex={{ base: '1', lg: '0 0 380px' }}
+            w={{ base: '100%', lg: '380px' }}
             alignSelf="stretch"
             bg="#0B0E17"
             borderRadius="3xl"
             borderWidth="1px"
             borderColor="brand.600"
-            boxShadow="2xl"
             p={6}
             position="relative"
             overflow="hidden"
@@ -129,27 +171,24 @@ const App = () => {
             />
             <Stack spacing={6} position="relative">
               <Heading size="md" color="#E4E8FF">
-                Game Modes
+                Behind the Graph
               </Heading>
               <Stack spacing={4}>
-                <ModeCard
-                  title="Explorer"
-                  description="Free graph exploration"
-                  accent="#38E8C6"
+                <StatPanel
+                  title="13 seasons"
+                  description="Top-flight campaigns from 2010 to 2023/24."
                 />
-                <ModeCard
-                  title="Time Trial"
-                  description="Beat the clock"
-                  accent="#FF5A7E"
+                <StatPanel
+                  title="25,000 players"
+                  description="Every debut, transfer, and teammate link."
                 />
-                <ModeCard
-                  title="Quick Play"
-                  description="Random player challenge"
-                  accent="#FFC54D"
+                <StatPanel
+                  title="5 leagues"
+                  description="Premier League, La Liga, Serie A, Bundesliga, Ligue 1."
                 />
               </Stack>
               <Text fontSize="sm" color="#9CA3AF">
-                Select your mode after pressing Play Now.
+                The network grows with every transfer window.
               </Text>
             </Stack>
           </Box>
@@ -159,31 +198,91 @@ const App = () => {
   );
 };
 
-const ModeCard = ({ title, description, accent }) => (
-  <Stack
-    spacing={3}
-    borderRadius="xl"
-    borderWidth="1px"
-    borderColor={`rgba(${parseInt(accent.slice(1, 3), 16)}, ${parseInt(accent.slice(3, 5), 16)}, ${parseInt(accent.slice(5, 7), 16)}, 0.3)`}
+const ModeCardButton = ({ accent, label, description }) => (
+  <Box
+    as="button"
+    type="button"
     bg="#10131F"
-    px={4}
-    py={3}
+    borderRadius="2xl"
+    border="1px solid rgba(255,255,255,0.05)"
+    px={{ base: 6, md: 8 }}
+    py={{ base: 8, md: 10 }}
+    display="flex"
+    flexDirection="column"
+    alignItems="flex-start"
+    gap={4}
+    position="relative"
+    overflow="hidden"
+    cursor="pointer"
+    transition="all 0.25s ease"
+    textAlign="left"
+    _hover={{
+      transform: 'translateY(-3px)',
+      borderColor: `${accent}66`,
+      boxShadow: `0 16px 30px -18px ${accent}80`,
+      _after: { opacity: 0.12 },
+    }}
+    _focusVisible={{
+      outline: '2px solid',
+      outlineColor: `${accent}99`,
+      outlineOffset: '4px',
+    }}
+    _after={{
+      content: '""',
+      position: 'absolute',
+      inset: 0,
+      bg: accent,
+      opacity: 0,
+      transition: 'opacity 0.25s ease',
+      pointerEvents: 'none',
+    }}
   >
-    <Stack spacing={1}>
-      <Text fontWeight="semibold" fontSize="lg" color="#E4E8FF">
-        {title}
-      </Text>
-      <Text fontSize="sm" color="#9CA3AF">
-        {description}
-      </Text>
-    </Stack>
+    <Text
+      fontSize={{ base: 'lg', md: 'xl' }}
+      fontWeight="700"
+      color="#E4E8FF"
+      position="relative"
+      zIndex={1}
+    >
+      {label}
+    </Text>
+    <Text
+      fontSize={{ base: 'md', md: 'lg' }}
+      fontWeight="400"
+      color="#9CA3AF"
+      position="relative"
+      zIndex={1}
+    >
+      {description}
+    </Text>
     <Box
+      mt="auto"
+      w="40%"
+      minW="100px"
       h="3px"
-      w="full"
       bg={`${accent}cc`}
       borderRadius="full"
+      position="relative"
+      zIndex={1}
     />
-  </Stack>
+  </Box>
+);
+
+const StatPanel = ({ title, description }) => (
+  <Box
+    bg="#10131F"
+    borderRadius="xl"
+    border="1px solid rgba(255,255,255,0.08)"
+    px={5}
+    py={4}
+  >
+    <Text fontSize="xl" fontWeight="700" color="#E4E8FF">
+      {title}
+    </Text>
+    <Text fontSize="sm" color="#9CA3AF" mt={2}>
+      {description}
+    </Text>
+  </Box>
 );
 
 export default App;
