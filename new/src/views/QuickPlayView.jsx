@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Alert,
   AlertIcon,
   Box,
   Flex,
+  Icon,
+  IconButton,
   Spinner,
   Stack,
   Text,
@@ -13,11 +15,28 @@ import ReactFlow, { Background } from 'reactflow';
 import GameHeader from '../components/GameHeader.jsx';
 
 const ENDPOINTS_URL = 'https://api.sixdegrees.kabirwahi.com/api/football?path=endpoints';
+const VIEWPORT_POSITION_TOLERANCE = 1;
+const VIEWPORT_ZOOM_TOLERANCE = 0.005;
+
+const viewportEquals = (a, b) => {
+  if (!a || !b) return false;
+  return (
+    Math.abs(a.x - b.x) <= VIEWPORT_POSITION_TOLERANCE &&
+    Math.abs(a.y - b.y) <= VIEWPORT_POSITION_TOLERANCE &&
+    Math.abs(a.zoom - b.zoom) <= VIEWPORT_ZOOM_TOLERANCE
+  );
+};
 
 const QuickPlayView = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [endpoints, setEndpoints] = useState(null);
+  const [defaultViewport, setDefaultViewport] = useState(null);
+  const [showRecenter, setShowRecenter] = useState(false);
+  const reactFlowInstanceRef = useRef(null);
+  const [flowReady, setFlowReady] = useState(false);
+  const pendingResetRef = useRef(false);
+  const resetTimeoutRef = useRef(null);
   const steps = 0;
   const maxSteps = 6;
 
@@ -79,6 +98,86 @@ const QuickPlayView = ({ onBack }) => {
   }, [endpoints, sourceName]);
 
   const edges = useMemo(() => [], []);
+
+  const scheduleResetRelease = useCallback((duration = 0, hideButton = false) => {
+    if (resetTimeoutRef.current) {
+      clearTimeout(resetTimeoutRef.current);
+      resetTimeoutRef.current = null;
+    }
+
+    if (duration > 0) {
+      resetTimeoutRef.current = setTimeout(() => {
+        pendingResetRef.current = false;
+        if (hideButton) setShowRecenter(false);
+        resetTimeoutRef.current = null;
+      }, duration);
+    } else {
+      pendingResetRef.current = false;
+      if (hideButton) setShowRecenter(false);
+    }
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (resetTimeoutRef.current) {
+        clearTimeout(resetTimeoutRef.current);
+        resetTimeoutRef.current = null;
+      }
+    },
+    [],
+  );
+
+  const resetViewport = useCallback(
+    (instance, options = {}) => {
+      const targetInstance = instance ?? reactFlowInstanceRef.current;
+      if (!targetInstance || nodes.length === 0) return;
+
+      pendingResetRef.current = true;
+      requestAnimationFrame(() => {
+        if (!reactFlowInstanceRef.current) return;
+        targetInstance.fitView({ padding: 0.35, minZoom: 0.8, duration: options.duration ?? 0 });
+        const viewport = targetInstance.getViewport();
+        setDefaultViewport({ ...viewport });
+        setShowRecenter(false);
+        scheduleResetRelease(options.duration ?? 0, false);
+      });
+    },
+    [nodes, scheduleResetRelease],
+  );
+
+  const handleInit = useCallback(
+    (instance) => {
+      reactFlowInstanceRef.current = instance;
+      setFlowReady(true);
+      if (nodes.length > 0) {
+        resetViewport(instance);
+      }
+    },
+    [nodes.length, resetViewport],
+  );
+
+  useEffect(() => {
+    if (!flowReady || nodes.length === 0) return;
+    resetViewport(reactFlowInstanceRef.current);
+  }, [flowReady, nodes, resetViewport]);
+
+  const handleMove = useCallback(
+    (_, viewport) => {
+      if (pendingResetRef.current || !defaultViewport) return;
+      const shouldShow = !viewportEquals(viewport, defaultViewport);
+      setShowRecenter((prev) => (prev === shouldShow ? prev : shouldShow));
+    },
+    [defaultViewport],
+  );
+
+  const handleRecenter = useCallback(() => {
+    if (!reactFlowInstanceRef.current || !defaultViewport) return;
+    pendingResetRef.current = true;
+    reactFlowInstanceRef.current.setViewport({ ...defaultViewport }, { duration: 400 });
+    scheduleResetRelease(400, true);
+  }, [defaultViewport, scheduleResetRelease]);
+
+  const recenterActive = !loading && !error && endpoints && showRecenter;
 
   return (
     <Box bg="#060912" minH="100vh">
@@ -161,13 +260,33 @@ const QuickPlayView = ({ onBack }) => {
                 <ReactFlow
                   nodes={nodes}
                   edges={edges}
-                  fitView
-                  fitViewOptions={{ padding: 0.35, minZoom: 0.8 }}
+                  onInit={handleInit}
+                  onMove={handleMove}
+                  onMoveEnd={handleMove}
+                  nodesConnectable={false}
                   proOptions={{ hideAttribution: true }}
                   style={{ width: '100%', height: '100%' }}
                 >
                   <Background color="rgba(148, 163, 184, 0.14)" gap={26} />
                 </ReactFlow>
+
+                {recenterActive && (
+                  <Box position="absolute" bottom={{ base: 4, md: 6 }} right={{ base: 4, md: 6 }}>
+                    <IconButton
+                      aria-label="Recenter view"
+                      icon={<CrosshairIcon boxSize={5} />}
+                      onClick={handleRecenter}
+                      bg="rgba(26, 34, 54, 0.96)"
+                      color="#E4E8FF"
+                      borderRadius="full"
+                      h="48px"
+                      w="48px"
+                      boxShadow="0 12px 24px -12px rgba(15, 23, 42, 0.8)"
+                      _hover={{ bg: 'rgba(44, 56, 88, 0.96)' }}
+                      _active={{ bg: 'rgba(18, 23, 40, 0.96)' }}
+                    />
+                  </Box>
+                )}
               </Box>
             </>
           )}
@@ -206,6 +325,20 @@ Chip.propTypes = {
   accent: PropTypes.string.isRequired,
   borderColor: PropTypes.string.isRequired,
   textColor: PropTypes.string.isRequired,
+};
+
+const CrosshairIcon = (props) => (
+  <Icon viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+    <circle cx="12" cy="12" r="3.5" />
+    <line x1="12" y1="3" x2="12" y2="7.5" strokeLinecap="round" />
+    <line x1="12" y1="16.5" x2="12" y2="21" strokeLinecap="round" />
+    <line x1="3" y1="12" x2="7.5" y2="12" strokeLinecap="round" />
+    <line x1="16.5" y1="12" x2="21" y2="12" strokeLinecap="round" />
+  </Icon>
+);
+
+CrosshairIcon.propTypes = {
+  boxSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default QuickPlayView;
