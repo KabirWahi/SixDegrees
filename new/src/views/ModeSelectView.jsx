@@ -1,5 +1,6 @@
-import { Box, Button, Container, Heading, SimpleGrid, Stack, Text } from '@chakra-ui/react';
+import { Container, Flex, SimpleGrid, Stack } from '@chakra-ui/react';
 import PropTypes from 'prop-types';
+import GameHeader from '../components/GameHeader.jsx';
 import ModeCardButton from '../components/ModeCardButton.jsx';
 
 const MODES = [
@@ -21,34 +22,26 @@ const MODES = [
 ];
 
 const ModeSelectView = ({ onBack, onSelectMode = undefined }) => (
-  <Box minH="100vh" bg="#0B0E17" position="relative">
-    <Button
-      position="absolute"
-      top={{ base: 4, md: 6 }}
-      left={{ base: 4, md: 8 }}
-      colorScheme="brand"
-      borderRadius="full"
-      onClick={onBack}
-      zIndex={1}
-    >
-      ← Back
-    </Button>
+  <Flex direction="column" minH="100vh" bg="#0B0E17" position="relative">
+    <GameHeader
+      title="Choose Mode"
+      subtitle="Three ways to play"
+      onBack={onBack}
+      containerProps={{
+        px: { base: 6, md: 10 },
+        pt: { base: 4, md: 6 },
+        pb: { base: 4, md: 6 },
+      }}
+    />
     <Container
       maxW="6xl"
-      minH="100vh"
+      flex="1"
       display="flex"
       alignItems="center"
-      py={{ base: 16, md: 24 }}
+      justifyContent="center"
+      py={{ base: 8, md: 12 }}
     >
-      <Stack spacing={12} w="full" mt={{ base: 16, md: -10 }}>
-        <Stack spacing={2} textAlign={{ base: 'left', md: 'center' }} mx="auto">
-          <Heading size={{ base: 'lg', md: 'xl' }} color="#E4E8FF">
-            Choose Mode
-          </Heading>
-          <Text fontSize={{ base: 'md', md: 'lg' }} color="#9CA3AF">
-            Three ways to play
-          </Text>
-        </Stack>
+      <Stack spacing={{ base: 8, md: 10 }} w="full" maxW="5xl" textAlign="center" mt={{ base: 2, md: 0 }}>
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={{ base: 6, md: 8 }}>
           {MODES.map(({ label, description, accent }) => (
             <ModeCardButton
@@ -62,7 +55,7 @@ const ModeSelectView = ({ onBack, onSelectMode = undefined }) => (
         </SimpleGrid>
       </Stack>
     </Container>
-  </Box>
+  </Flex>
 );
 
 ModeSelectView.propTypes = {

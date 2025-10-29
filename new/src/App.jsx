@@ -6,11 +6,14 @@ import QuickPlayView from './views/QuickPlayView.jsx';
 const App = () => {
   const [view, setView] = useState('home');
 
-  const handleSelectMode = useCallback((mode) => {
-    if (mode === 'Quick Play') {
-      setView('quick-play');
-    }
-  }, []);
+  const handleSelectMode = useCallback(
+    (mode) => {
+      if (mode === 'Quick Play') {
+        setView('quick-play');
+      }
+    },
+    [],
+  );
 
   if (view === 'modes') {
     return (

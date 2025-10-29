@@ -1,17 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Alert,
   AlertIcon,
   Box,
-  Button,
-  Container,
   Flex,
-  Heading,
   Spinner,
   Stack,
   Text,
 } from '@chakra-ui/react';
+import ReactFlow, { Background } from 'reactflow';
+import GameHeader from '../components/GameHeader.jsx';
 
 const ENDPOINTS_URL = 'https://api.sixdegrees.kabirwahi.com/api/football?path=endpoints';
 
@@ -19,6 +18,8 @@ const QuickPlayView = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [endpoints, setEndpoints] = useState(null);
+  const steps = 0;
+  const maxSteps = 6;
 
   useEffect(() => {
     let isSubscribed = true;
@@ -57,112 +58,154 @@ const QuickPlayView = ({ onBack }) => {
   const sourceName = endpoints?.source?.[1] ?? 'Unknown';
   const targetName = endpoints?.target?.[1] ?? 'Unknown';
 
-  return (
-    <Box minH="100vh" bg="#0B0E17" position="relative">
-      <Button
-        position="absolute"
-        top={{ base: 4, md: 6 }}
-        left={{ base: 4, md: 8 }}
-        colorScheme="brand"
-        borderRadius="full"
-        onClick={onBack}
-        zIndex={1}
-      >
-        ← Back
-      </Button>
-      <Container
-        maxW="5xl"
-        minH="100vh"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        py={{ base: 16, md: 20 }}
-      >
-        <Stack
-          spacing={10}
-          w="full"
-          bg="#10131F"
-          borderRadius="3xl"
-          borderWidth="1px"
-          borderColor="brand.600"
-          p={{ base: 8, md: 12 }}
-          boxShadow="0 20px 60px -40px rgba(109, 116, 209, 0.65)"
-        >
-          <Stack spacing={2} textAlign="center">
-            <Heading size={{ base: 'md', md: 'lg' }} color="#E4E8FF">
-              Quick Play
-            </Heading>
-            <Text fontSize={{ base: 'sm', md: 'md' }} color="#9CA3AF">
-              Connect the source player to the target in six steps or fewer.
-            </Text>
-          </Stack>
+  const nodes = useMemo(() => {
+    if (!endpoints?.source) return [];
+    return [
+      {
+        id: endpoints.source[0],
+        position: { x: 0, y: 0 },
+        data: { label: sourceName },
+        style: {
+          padding: '12px 18px',
+          borderRadius: '12px',
+          border: '1px solid rgba(56, 232, 198, 0.4)',
+          background: 'rgba(56, 232, 198, 0.18)',
+          color: '#E4E8FF',
+          fontWeight: 600,
+          fontSize: '15px',
+        },
+      },
+    ];
+  }, [endpoints, sourceName]);
 
+  const edges = useMemo(() => [], []);
+
+  return (
+    <Box bg="#060912" minH="100vh">
+      <Flex
+        direction="column"
+        h="100vh"
+        w="100%"
+        px={{ base: 4, md: 6 }}
+        py={{ base: 4, md: 6 }}
+        gap={{ base: 4, md: 6 }}
+        minW="0"
+      >
+        <GameHeader
+          title="Quick Play"
+          subtitle="Connect the source player to the target in six steps or fewer."
+          onBack={onBack}
+          rightContent={
+            <Text fontSize={{ base: 'sm', md: 'md' }} color="#9CA3AF" minW="fit-content">
+              Steps: {steps} / {maxSteps}
+            </Text>
+          }
+          containerProps={{
+            px: { base: 4, md: 6 },
+            pt: 0,
+            pb: { base: 3, md: 4 },
+          }}
+        />
+
+        <Box
+          position="relative"
+          flex="1"
+          minH="0"
+          borderRadius="3xl"
+          overflow="hidden"
+          bg="#050713"
+          border="1px solid rgba(109, 116, 209, 0.25)"
+          w="100%"
+        >
           {loading && (
-            <Flex align="center" justify="center" py={10}>
+            <Flex align="center" justify="center" h="100%">
               <Spinner size="xl" color="brand.400" thickness="4px" />
             </Flex>
           )}
 
           {!loading && error && (
-            <Alert status="error" borderRadius="xl" bg="rgba(230,57,70,0.12)" border="none">
-              <AlertIcon />
-              {error.message ?? 'Unable to fetch quick play endpoints.'}
-            </Alert>
+            <Flex align="center" justify="center" h="100%" px={6}>
+              <Alert
+                status="error"
+                borderRadius="lg"
+                bg="rgba(230,57,70,0.12)"
+                border="none"
+                maxW="md"
+              >
+                <AlertIcon />
+                {error.message ?? 'Unable to fetch quick play endpoints.'}
+              </Alert>
+            </Flex>
           )}
 
           {!loading && !error && endpoints && (
-            <Flex
-              direction={{ base: 'column', md: 'row' }}
-              gap={{ base: 6, md: 12 }}
-              justify="space-between"
-            >
+            <>
               <Stack
-                flex="1"
-                spacing={3}
-                bg="rgba(56, 232, 198, 0.08)"
-                border="1px solid rgba(56, 232, 198, 0.2)"
-                borderRadius="2xl"
-                p={{ base: 6, md: 8 }}
+                position="absolute"
+                top={{ base: 3, md: 5 }}
+                left={{ base: 3, md: 5 }}
+                spacing={{ base: 2, md: 3 }}
+                zIndex={2}
+                pointerEvents="none"
               >
-                <Text fontSize="sm" color="#38E8C6" textTransform="uppercase" letterSpacing="wide">
-                  Source Player
-                </Text>
-                <Heading size="lg" color="#E4E8FF">
-                  {sourceName}
-                </Heading>
-                <Text fontSize="sm" color="#9CA3AF">
-                  Player ID: {endpoints.source?.[0]}
-                </Text>
+                <Chip
+                  label="TARGET PLAYER"
+                  value={targetName}
+                  accent="rgba(255, 90, 126, 0.18)"
+                  borderColor="rgba(255, 90, 126, 0.35)"
+                  textColor="#FF5A7E"
+                />
               </Stack>
 
-              <Stack
-                flex="1"
-                spacing={3}
-                bg="rgba(255, 90, 126, 0.08)"
-                border="1px solid rgba(255, 90, 126, 0.2)"
-                borderRadius="2xl"
-                p={{ base: 6, md: 8 }}
-              >
-                <Text fontSize="sm" color="#FF5A7E" textTransform="uppercase" letterSpacing="wide">
-                  Target Player
-                </Text>
-                <Heading size="lg" color="#E4E8FF">
-                  {targetName}
-                </Heading>
-                <Text fontSize="sm" color="#9CA3AF">
-                  Player ID: {endpoints.target?.[0]}
-                </Text>
-              </Stack>
-            </Flex>
+              <Box position="absolute" inset="0">
+                <ReactFlow
+                  nodes={nodes}
+                  edges={edges}
+                  fitView
+                  fitViewOptions={{ padding: 0.35, minZoom: 0.8 }}
+                  proOptions={{ hideAttribution: true }}
+                  style={{ width: '100%', height: '100%' }}
+                >
+                  <Background color="rgba(148, 163, 184, 0.14)" gap={26} />
+                </ReactFlow>
+              </Box>
+            </>
           )}
-        </Stack>
-      </Container>
+        </Box>
+      </Flex>
     </Box>
   );
 };
 
 QuickPlayView.propTypes = {
   onBack: PropTypes.func.isRequired,
+};
+
+const Chip = ({ label, value, accent, borderColor, textColor }) => (
+  <Box
+    px={{ base: 4, md: 5 }}
+    py={{ base: 3, md: 3 }}
+    borderRadius="xl"
+    bg={accent}
+    border={`1px solid ${borderColor}`}
+    backdropFilter="blur(6px)"
+    maxW={{ base: '260px', md: '340px' }}
+  >
+    <Text fontSize="xs" letterSpacing="0.2em" color={textColor} mb={1}>
+      {label}
+    </Text>
+    <Text fontSize={{ base: 'md', md: 'lg' }} color="#E4E8FF" fontWeight="600">
+      {value}
+    </Text>
+  </Box>
+);
+
+Chip.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  accent: PropTypes.string.isRequired,
+  borderColor: PropTypes.string.isRequired,
+  textColor: PropTypes.string.isRequired,
 };
 
 export default QuickPlayView;
