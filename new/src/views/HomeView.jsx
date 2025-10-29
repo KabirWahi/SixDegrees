@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import StatPanel from '../components/StatPanel.jsx';
 
-const HomeView = ({ onPlay, onLearnMore }) => (
+const HomeView = ({ onPlay, onLearnMore, isPlayLoading }) => (
   <Box
     minH="100vh"
     bgGradient="linear(to-br, #0B0E17, #10131F)"
@@ -63,7 +63,14 @@ const HomeView = ({ onPlay, onLearnMore }) => (
             transfers that connect football&apos;s biggest names.
           </Text>
           <HStack spacing={4} wrap="wrap">
-            <Button size="lg" colorScheme="brand" borderRadius="full" px={10} onClick={onPlay}>
+            <Button
+              size="lg"
+              colorScheme="brand"
+              borderRadius="full"
+              px={10}
+              onClick={onPlay}
+              isLoading={isPlayLoading}
+            >
               Play Now
             </Button>
             <Link
@@ -120,6 +127,11 @@ const HomeView = ({ onPlay, onLearnMore }) => (
 HomeView.propTypes = {
   onPlay: PropTypes.func.isRequired,
   onLearnMore: PropTypes.func.isRequired,
+  isPlayLoading: PropTypes.bool,
+};
+
+HomeView.defaultProps = {
+  isPlayLoading: false,
 };
 
 export default HomeView;
