@@ -104,6 +104,9 @@ const QuickPlayView = ({ onBack }) => {
           fontWeight: 600,
           fontSize: '15px',
           cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         },
       },
     ];
@@ -342,6 +345,22 @@ const QuickPlayView = ({ onBack }) => {
                   borderColor="rgba(255, 90, 126, 0.35)"
                   textColor="#FF5A7E"
                 />
+                <Box
+                  as="span"
+                  display="inline-flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  px={{ base: 4, md: 5 }}
+                  py={{ base: 2.5, md: 3 }}
+                  borderRadius="full"
+                  bg="rgba(255,255,255,0.03)"
+                  border="1px solid rgba(255,255,255,0.08)"
+                  color="rgba(230,233,246,0.88)"
+                  fontSize={{ base: 'sm', md: 'md' }}
+                  fontWeight="600"
+                >
+                  Steps: {steps} / {maxSteps}
+                </Box>
               </Stack>
 
               <Box position="absolute" inset="0">
