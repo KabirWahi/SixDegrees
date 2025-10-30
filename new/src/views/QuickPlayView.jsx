@@ -13,6 +13,8 @@ import {
 } from '@chakra-ui/react';
 import ReactFlow, { Background } from 'reactflow';
 import GameHeader from '../components/GameHeader.jsx';
+import RightNeighborsPanel from '../components/RightNeighborsPanel.jsx';
+import fetchNeighbors from '../utils/fetchNeighbors.js';
 
 const ENDPOINTS_URL = 'https://api.sixdegrees.kabirwahi.com/api/football?path=endpoints';
 const VIEWPORT_POSITION_TOLERANCE = 1;
@@ -37,6 +39,15 @@ const QuickPlayView = ({ onBack }) => {
   const [flowReady, setFlowReady] = useState(false);
   const pendingResetRef = useRef(false);
   const resetTimeoutRef = useRef(null);
+  const neighborsCacheRef = useRef({});
+  const pendingRequestsRef = useRef({});
+  const [neighborsMap, setNeighborsMap] = useState({});
+  const [loadingNodeId, setLoadingNodeId] = useState(null);
+  const [errorByNode, setErrorByNode] = useState({});
+  const [panelState, setPanelState] = useState({
+    isOpen: false,
+    nodeId: null,
+  });
   const steps = 0;
   const maxSteps = 6;
 
@@ -92,6 +103,7 @@ const QuickPlayView = ({ onBack }) => {
           color: '#E4E8FF',
           fontWeight: 600,
           fontSize: '15px',
+          cursor: 'pointer',
         },
       },
     ];
@@ -178,6 +190,82 @@ const QuickPlayView = ({ onBack }) => {
   }, [defaultViewport, scheduleResetRelease]);
 
   const recenterActive = !loading && !error && endpoints && showRecenter;
+  const panelNeighbors = panelState.nodeId ? neighborsMap[panelState.nodeId] ?? [] : [];
+  const panelLoading = Boolean(panelState.nodeId && loadingNodeId === panelState.nodeId);
+  const panelError = panelState.nodeId ? errorByNode[panelState.nodeId] : null;
+
+  const requestNeighbors = useCallback(
+    (nodeId, options = {}) => {
+      if (!nodeId) {
+        return Promise.resolve([]);
+      }
+
+      const cached = neighborsCacheRef.current[nodeId];
+      if (cached) {
+        setNeighborsMap((prev) => (prev[nodeId] ? prev : { ...prev, [nodeId]: cached }));
+        return Promise.resolve(cached);
+      }
+
+      if (pendingRequestsRef.current[nodeId]) {
+        return pendingRequestsRef.current[nodeId];
+      }
+
+      setLoadingNodeId(nodeId);
+      setErrorByNode((prev) => {
+        const next = { ...prev };
+        delete next[nodeId];
+        return next;
+      });
+
+      const promise = (async () => {
+        try {
+          const data = await fetchNeighbors(nodeId, options);
+          neighborsCacheRef.current[nodeId] = data;
+          setNeighborsMap((prev) => ({ ...prev, [nodeId]: data }));
+          return data;
+        } catch (fetchError) {
+          if (fetchError?.name !== 'AbortError') {
+            setErrorByNode((prev) => ({ ...prev, [nodeId]: fetchError }));
+          }
+          throw fetchError;
+        } finally {
+          setLoadingNodeId((current) => (current === nodeId ? null : current));
+          delete pendingRequestsRef.current[nodeId];
+        }
+      })();
+
+      pendingRequestsRef.current[nodeId] = promise;
+      return promise;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const sourceId = endpoints?.source?.[0];
+    if (!sourceId) return;
+    if (neighborsCacheRef.current[sourceId]) return;
+
+    const controller = new AbortController();
+
+    requestNeighbors(sourceId, { signal: controller.signal }).catch(() => {});
+
+    return () => {
+      controller.abort();
+    };
+  }, [endpoints, requestNeighbors]);
+
+  const handleNodeClick = useCallback(
+    (_, node) => {
+      if (!node?.id) return;
+      setPanelState({ isOpen: true, nodeId: node.id });
+      requestNeighbors(node.id).catch(() => {});
+    },
+    [requestNeighbors],
+  );
+
+  const handleClosePanel = useCallback(() => {
+    setPanelState({ isOpen: false, nodeId: null });
+  }, []);
 
   return (
     <Box bg="#060912" minH="100vh">
@@ -261,6 +349,7 @@ const QuickPlayView = ({ onBack }) => {
                   nodes={nodes}
                   edges={edges}
                   onInit={handleInit}
+                  onNodeClick={handleNodeClick}
                   onMove={handleMove}
                   onMoveEnd={handleMove}
                   nodesConnectable={false}
@@ -288,6 +377,13 @@ const QuickPlayView = ({ onBack }) => {
                   </Box>
                 )}
               </Box>
+              <RightNeighborsPanel
+                isOpen={panelState.isOpen}
+                neighbors={panelNeighbors}
+                isLoading={panelLoading}
+                error={panelError}
+                onClose={handleClosePanel}
+              />
             </>
           )}
         </Box>
