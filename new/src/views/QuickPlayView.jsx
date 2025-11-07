@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import * as d3 from 'd3';
 import PropTypes from 'prop-types';
 import {
   Alert,
@@ -11,7 +12,6 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import ReactFlow, { Background } from 'reactflow';
 import GameHeader from '../components/GameHeader.jsx';
 import RightNeighborsPanel from '../components/RightNeighborsPanel.jsx';
 import fetchNeighbors from '../utils/fetchNeighbors.js';
@@ -20,12 +20,26 @@ const ENDPOINTS_URL = 'https://api.sixdegrees.kabirwahi.com/api/football?path=en
 const VIEWPORT_POSITION_TOLERANCE = 1;
 const VIEWPORT_ZOOM_TOLERANCE = 0.005;
 
+const getZoomValue = (transform) => {
+  if (!transform) return null;
+  if (typeof transform.k === 'number') return transform.k;
+  if (typeof transform.zoom === 'number') return transform.zoom;
+  return null;
+};
+
 const viewportEquals = (a, b) => {
   if (!a || !b) return false;
+  const zoomA = getZoomValue(a);
+  const zoomB = getZoomValue(b);
+  const zoomDiff =
+    typeof zoomA === 'number' && typeof zoomB === 'number'
+      ? Math.abs(zoomA - zoomB)
+      : 0;
+
   return (
     Math.abs(a.x - b.x) <= VIEWPORT_POSITION_TOLERANCE &&
     Math.abs(a.y - b.y) <= VIEWPORT_POSITION_TOLERANCE &&
-    Math.abs(a.zoom - b.zoom) <= VIEWPORT_ZOOM_TOLERANCE
+    zoomDiff <= VIEWPORT_ZOOM_TOLERANCE
   );
 };
 
@@ -33,10 +47,17 @@ const QuickPlayView = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [endpoints, setEndpoints] = useState(null);
-  const [defaultViewport, setDefaultViewport] = useState(null);
   const [showRecenter, setShowRecenter] = useState(false);
-  const reactFlowInstanceRef = useRef(null);
-  const [flowReady, setFlowReady] = useState(false);
+  const svgRef = useRef(null);
+  const graphLayerRef = useRef(null);
+  const zoomBehaviorRef = useRef(null);
+  const defaultViewportRef = useRef(d3.zoomIdentity);
+  const [zoomReady, setZoomReady] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
+  const containerRef = useRef(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 720, height: 540 });
+  const [nodePositions, setNodePositions] = useState({});
+  const latestPositionsRef = useRef({});
   const pendingResetRef = useRef(false);
   const resetTimeoutRef = useRef(null);
   const neighborsCacheRef = useRef({});
@@ -50,6 +71,51 @@ const QuickPlayView = ({ onBack }) => {
   });
   const steps = 0;
   const maxSteps = 6;
+
+  useEffect(() => {
+    let observer = null;
+    let rafId = null;
+
+    const attachObserver = () => {
+      const element = containerRef.current;
+      if (!element) {
+        rafId = requestAnimationFrame(attachObserver);
+        return;
+      }
+
+      const updateSize = () => {
+        const rect = element.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        setCanvasSize((prev) => {
+          if (prev.width === rect.width && prev.height === rect.height) {
+            return prev;
+          }
+          return { width: rect.width, height: rect.height };
+        });
+      };
+
+      updateSize();
+
+      if (typeof ResizeObserver === 'undefined') {
+        observer = null;
+        return;
+      }
+
+      observer = new ResizeObserver(updateSize);
+      observer.observe(element);
+    };
+
+    attachObserver();
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let isSubscribed = true;
@@ -85,34 +151,59 @@ const QuickPlayView = ({ onBack }) => {
     };
   }, []);
 
+  const refsReady = Boolean(svgRef.current && graphLayerRef.current);
+
+  useEffect(() => {
+    if (!refsReady) return;
+
+    const svgSelection = d3.select(svgRef.current);
+    const layerSelection = d3.select(graphLayerRef.current);
+
+    const zoomBehavior = d3
+      .zoom()
+      .scaleExtent([0.6, 2])
+      .on('start', () => setIsPanning(true))
+      .on('zoom', (event) => {
+        layerSelection.attr('transform', event.transform);
+        if (pendingResetRef.current) return;
+
+        const baseline = defaultViewportRef.current;
+        if (!baseline) return;
+
+        const shouldShow = !viewportEquals(event.transform, baseline);
+        setShowRecenter((prev) => (prev === shouldShow ? prev : shouldShow));
+      })
+      .on('end', () => setIsPanning(false));
+
+    svgSelection.call(zoomBehavior).on('dblclick.zoom', null);
+
+    zoomBehaviorRef.current = zoomBehavior;
+    defaultViewportRef.current = d3.zoomIdentity;
+    setShowRecenter(false);
+    setZoomReady(true);
+
+    return () => {
+      svgSelection.on('.zoom', null);
+      zoomBehaviorRef.current = null;
+      defaultViewportRef.current = d3.zoomIdentity;
+      setZoomReady(false);
+      setIsPanning(false);
+    };
+  }, [refsReady]);
+
   const sourceName = endpoints?.source?.[1] ?? 'Unknown';
   const targetName = endpoints?.target?.[1] ?? 'Unknown';
 
-  const nodes = useMemo(() => {
+  const graphNodes = useMemo(() => {
     if (!endpoints?.source) return [];
     return [
       {
         id: endpoints.source[0],
-        position: { x: 0, y: 0 },
-        data: { label: sourceName },
-        style: {
-          padding: '12px 18px',
-          borderRadius: '12px',
-          border: '1px solid rgba(56, 232, 198, 0.4)',
-          background: 'rgba(56, 232, 198, 0.18)',
-          color: '#E4E8FF',
-          fontWeight: 600,
-          fontSize: '15px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
+        label: sourceName,
       },
     ];
   }, [endpoints, sourceName]);
 
-  const edges = useMemo(() => [], []);
 
   const scheduleResetRelease = useCallback((duration = 0, hideButton = false) => {
     if (resetTimeoutRef.current) {
@@ -142,55 +233,105 @@ const QuickPlayView = ({ onBack }) => {
     [],
   );
 
-  const resetViewport = useCallback(
-    (instance, options = {}) => {
-      const targetInstance = instance ?? reactFlowInstanceRef.current;
-      if (!targetInstance || nodes.length === 0) return;
+  const applyViewportTransform = useCallback(
+    (
+      transform,
+      { duration = 0, hideButton = false, updateBaseline = true } = {},
+    ) => {
+      const svgElement = svgRef.current;
+      const zoomBehavior = zoomBehaviorRef.current;
+      if (!svgElement || !zoomBehavior) return;
 
+      const svgSelection = d3.select(svgElement);
       pendingResetRef.current = true;
-      requestAnimationFrame(() => {
-        if (!reactFlowInstanceRef.current) return;
-        targetInstance.fitView({ padding: 0.35, minZoom: 0.8, duration: options.duration ?? 0 });
-        const viewport = targetInstance.getViewport();
-        setDefaultViewport({ ...viewport });
-        setShowRecenter(false);
-        scheduleResetRelease(options.duration ?? 0, false);
-      });
-    },
-    [nodes, scheduleResetRelease],
-  );
 
-  const handleInit = useCallback(
-    (instance) => {
-      reactFlowInstanceRef.current = instance;
-      setFlowReady(true);
-      if (nodes.length > 0) {
-        resetViewport(instance);
+      const finalize = () => {
+        if (updateBaseline) {
+          defaultViewportRef.current = transform;
+        }
+        setShowRecenter(false);
+        scheduleResetRelease(duration, hideButton);
+      };
+
+      if (duration > 0) {
+        const transition = svgSelection.transition().duration(duration);
+        transition.call(zoomBehavior.transform, transform);
+        transition.on('end', finalize);
+        transition.on('interrupt', finalize);
+      } else {
+        svgSelection.call(zoomBehavior.transform, transform);
+        finalize();
       }
     },
-    [nodes.length, resetViewport],
+    [scheduleResetRelease],
+  );
+
+  const computeCenterTransform = useCallback(
+    (positions = latestPositionsRef.current) => {
+      const ids = Object.keys(positions ?? {});
+      if (
+        ids.length === 0 ||
+        !Number.isFinite(canvasSize.width) ||
+        !Number.isFinite(canvasSize.height)
+      ) {
+        return d3.zoomIdentity;
+      }
+
+      const bounds = ids.reduce(
+        (acc, id) => {
+          const point = positions[id];
+          if (point) {
+            acc.minX = Math.min(acc.minX, point.x);
+            acc.maxX = Math.max(acc.maxX, point.x);
+            acc.minY = Math.min(acc.minY, point.y);
+            acc.maxY = Math.max(acc.maxY, point.y);
+          }
+          return acc;
+        },
+        {
+          minX: Infinity,
+          maxX: -Infinity,
+          minY: Infinity,
+          maxY: -Infinity,
+        },
+      );
+
+      if (
+        !Number.isFinite(bounds.minX) ||
+        !Number.isFinite(bounds.maxX) ||
+        !Number.isFinite(bounds.minY) ||
+        !Number.isFinite(bounds.maxY)
+      ) {
+        return d3.zoomIdentity;
+      }
+
+      const centerX = (bounds.minX + bounds.maxX) / 2;
+      const centerY = (bounds.minY + bounds.maxY) / 2;
+
+      const translateX = canvasSize.width / 2 - centerX;
+      const translateY = canvasSize.height / 2 - centerY;
+
+      return d3.zoomIdentity.translate(translateX, translateY);
+    },
+    [canvasSize.height, canvasSize.width],
+  );
+
+  const resetViewport = useCallback(
+    (options = {}) => {
+      const transform = options.overrideTransform ?? computeCenterTransform();
+      applyViewportTransform(transform, options);
+    },
+    [applyViewportTransform, computeCenterTransform],
   );
 
   useEffect(() => {
-    if (!flowReady || nodes.length === 0) return;
-    resetViewport(reactFlowInstanceRef.current);
-  }, [flowReady, nodes, resetViewport]);
-
-  const handleMove = useCallback(
-    (_, viewport) => {
-      if (pendingResetRef.current || !defaultViewport) return;
-      const shouldShow = !viewportEquals(viewport, defaultViewport);
-      setShowRecenter((prev) => (prev === shouldShow ? prev : shouldShow));
-    },
-    [defaultViewport],
-  );
+    if (!zoomReady || graphNodes.length === 0) return;
+    resetViewport({ duration: 0, hideButton: true });
+  }, [zoomReady, graphNodes.length, resetViewport]);
 
   const handleRecenter = useCallback(() => {
-    if (!reactFlowInstanceRef.current || !defaultViewport) return;
-    pendingResetRef.current = true;
-    reactFlowInstanceRef.current.setViewport({ ...defaultViewport }, { duration: 400 });
-    scheduleResetRelease(400, true);
-  }, [defaultViewport, scheduleResetRelease]);
+    resetViewport({ duration: 400, hideButton: true });
+  }, [resetViewport]);
 
   const recenterActive = !loading && !error && endpoints && showRecenter;
   const panelNeighbors = panelState.nodeId ? neighborsMap[panelState.nodeId] ?? [] : [];
@@ -258,13 +399,70 @@ const QuickPlayView = ({ onBack }) => {
   }, [endpoints, requestNeighbors]);
 
   const handleNodeClick = useCallback(
-    (_, node) => {
-      if (!node?.id) return;
-      setPanelState({ isOpen: true, nodeId: node.id });
-      requestNeighbors(node.id).catch(() => {});
+    (nodeId) => {
+      if (!nodeId) return;
+      setPanelState({ isOpen: true, nodeId });
+      requestNeighbors(nodeId).catch(() => {});
     },
     [requestNeighbors],
   );
+
+  useEffect(() => {
+    if (graphNodes.length === 0) {
+      latestPositionsRef.current = {};
+      setNodePositions({});
+      return;
+    }
+
+    const nodesCopy = graphNodes.map((node) => ({
+      ...node,
+      x: canvasSize.width / 2,
+      y: canvasSize.height / 2,
+    }));
+
+    let simulation = null;
+    if (graphNodes.length > 1) {
+      simulation = d3
+        .forceSimulation(nodesCopy)
+        .force('center', d3.forceCenter(canvasSize.width / 2, canvasSize.height / 2))
+        .force('charge', d3.forceManyBody().strength(-60))
+        .force('collision', d3.forceCollide().radius(80))
+        .stop();
+
+      simulation.tick(Math.max(1, 40 - nodesCopy.length * 2));
+    }
+
+    const rawPositions = nodesCopy.reduce((acc, node) => {
+      acc[node.id] = {
+        x: Number.isFinite(node.x) ? node.x : canvasSize.width / 2,
+        y: Number.isFinite(node.y) ? node.y : canvasSize.height / 2,
+      };
+      return acc;
+    }, {});
+
+    latestPositionsRef.current = rawPositions;
+    setNodePositions(rawPositions);
+
+    if (zoomReady) {
+      const targetTransform = computeCenterTransform(rawPositions);
+      applyViewportTransform(targetTransform, {
+        duration: 0,
+        hideButton: true,
+        updateBaseline: true,
+      });
+    }
+
+    return () => {
+      simulation?.stop();
+    };
+  }, [
+    graphNodes,
+    canvasSize.width,
+    canvasSize.height,
+    zoomReady,
+    computeCenterTransform,
+    applyViewportTransform,
+  ]);
 
   const handleClosePanel = useCallback(() => {
     setPanelState({ isOpen: false, nodeId: null });
@@ -358,25 +556,57 @@ const QuickPlayView = ({ onBack }) => {
                   color="rgba(230,233,246,0.88)"
                   fontSize={{ base: 'sm', md: 'md' }}
                   fontWeight="600"
+                  backdropFilter="blur(6px)"
                 >
                   Steps: {steps} / {maxSteps}
                 </Box>
               </Stack>
 
-              <Box position="absolute" inset="0">
-                <ReactFlow
-                  nodes={nodes}
-                  edges={edges}
-                  onInit={handleInit}
-                  onNodeClick={handleNodeClick}
-                  onMove={handleMove}
-                  onMoveEnd={handleMove}
-                  nodesConnectable={false}
-                  proOptions={{ hideAttribution: true }}
-                  style={{ width: '100%', height: '100%' }}
+              <Box position="absolute" inset="0" ref={containerRef}>
+                <svg
+                  ref={svgRef}
+                  width="100%"
+                  height="100%"
+                  role="presentation"
+                  aria-label="Player graph"
+                  style={{ display: 'block', cursor: isPanning ? 'grabbing' : 'grab' }}
                 >
-                  <Background color="rgba(148, 163, 184, 0.14)" gap={26} />
-                </ReactFlow>
+                  <g ref={graphLayerRef}>
+                    {graphNodes.map((node) => {
+                      const position =
+                        nodePositions[node.id] ?? {
+                          x: canvasSize.width / 2,
+                          y: canvasSize.height / 2,
+                        };
+
+                      return (
+                        <g
+                          key={node.id}
+                          transform={`translate(${position.x}, ${position.y})`}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleNodeClick(node.id)}
+                        >
+                          <circle
+                            r={72}
+                            fill="rgba(56, 232, 198, 0.18)"
+                            stroke="rgba(56, 232, 198, 0.5)"
+                            strokeWidth={2.5}
+                            style={{ filter: 'drop-shadow(0px 10px 25px rgba(56, 232, 198, 0.35))' }}
+                          />
+                          <text
+                            textAnchor="middle"
+                            dy="0.35em"
+                            fill="#E4E8FF"
+                            fontSize={16}
+                            fontWeight={600}
+                          >
+                            {node.label}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </g>
+                </svg>
 
                 {recenterActive && (
                   <Box position="absolute" bottom={{ base: 4, md: 6 }} right={{ base: 4, md: 6 }}>
@@ -424,11 +654,12 @@ const Chip = ({ label, value, accent, borderColor, textColor }) => (
     border={`1px solid ${borderColor}`}
     backdropFilter="blur(6px)"
     maxW={{ base: '260px', md: '340px' }}
+    textAlign="center"
   >
-    <Text fontSize="xs" letterSpacing="0.2em" color={textColor} mb={1}>
+    <Text fontSize="xs" letterSpacing="0.2em" color={textColor} mb={1} textAlign="center">
       {label}
     </Text>
-    <Text fontSize={{ base: 'md', md: 'lg' }} color="#E4E8FF" fontWeight="600">
+    <Text fontSize={{ base: 'md', md: 'lg' }} color="#E4E8FF" fontWeight="600" textAlign="center">
       {value}
     </Text>
   </Box>
