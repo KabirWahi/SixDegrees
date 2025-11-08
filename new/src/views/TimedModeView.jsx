@@ -254,6 +254,7 @@ const TimedModeView = ({ onBack }) => {
                 targetId={targetId}
                 onNodeClick={handleNodeClick}
                 isInteractionDisabled={isTimeUp}
+                activeNodeId={panelState.nodeId}
               />
 
               <Text

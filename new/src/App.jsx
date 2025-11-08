@@ -4,6 +4,7 @@ import HomeView from './views/HomeView.jsx';
 import ModeSelectView from './views/ModeSelectView.jsx';
 import QuickPlayView from './views/QuickPlayView.jsx';
 import TimedModeView from './views/TimedModeView.jsx';
+import ExplorerView from './views/ExplorerView.jsx';
 import { pingForPlay, warmOnRender } from './utils/apiWarmup.js';
 
 const App = () => {
@@ -21,6 +22,8 @@ const App = () => {
         setView('quick-play');
       } else if (mode === 'Time Trial') {
         setView('time-trial');
+      } else if (mode === 'Explorer') {
+        setView('explorer');
       }
     },
     [setView],
@@ -72,6 +75,10 @@ const App = () => {
 
   if (view === 'time-trial') {
     return <TimedModeView onBack={() => setView('modes')} />;
+  }
+
+  if (view === 'explorer') {
+    return <ExplorerView onBack={() => setView('modes')} />;
   }
 
   return (

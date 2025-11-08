@@ -196,6 +196,7 @@ const QuickPlayView = ({ onBack }) => {
                 targetId={targetId}
                 onNodeClick={handleNodeClick}
                 isInteractionDisabled={gameComplete}
+                activeNodeId={panelState.nodeId}
               />
 
               <RightNeighborsPanel

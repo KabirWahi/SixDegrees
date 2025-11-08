@@ -36,6 +36,8 @@ const GraphCanvas = ({
   sourceId,
   targetId,
   isInteractionDisabled,
+  useUniformColors,
+  activeNodeId,
 }) => {
   const containerRef = useRef(null);
   const svgRef = useRef(null);
@@ -51,6 +53,7 @@ const GraphCanvas = ({
   const [showRecenter, setShowRecenter] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [nodePositions, setNodePositions] = useState({});
+  const [hoveredNodeId, setHoveredNodeId] = useState(null);
 
   useEffect(() => {
     let observer = null;
@@ -417,16 +420,27 @@ const GraphCanvas = ({
               };
 
             let palette = circleStyles.default;
-            if (node.id === sourceId) {
-              palette = circleStyles.source;
-            } else if (node.id === targetId) {
-              palette = circleStyles.target;
+            if (!useUniformColors) {
+              if (node.id === sourceId) {
+                palette = circleStyles.source;
+              } else if (node.id === targetId) {
+                palette = circleStyles.target;
+              }
             }
+
+            const isHovered = hoveredNodeId === node.id;
+            const isActive = activeNodeId === node.id;
+            const circleScale = isActive ? 1.08 : isHovered ? 1.04 : 1;
+            const strokeColor =
+              isHovered || isActive
+                ? 'rgba(255,255,255,0.85)'
+                : palette.stroke;
+            const shadowColor = isHovered || isActive ? '0px 14px 32px rgba(255,255,255,0.25)' : palette.shadow;
 
             return (
               <g
                 key={node.id}
-                transform={`translate(${position.x}, ${position.y})`}
+                transform={`translate(${position.x}, ${position.y}) scale(${circleScale})`}
                 style={{ cursor: isInteractionDisabled ? 'default' : 'pointer' }}
                 onClick={
                   isInteractionDisabled
@@ -435,13 +449,15 @@ const GraphCanvas = ({
                         onNodeClick?.(node.id);
                       }
                 }
+                onMouseEnter={() => setHoveredNodeId(node.id)}
+                onMouseLeave={() => setHoveredNodeId((current) => (current === node.id ? null : current))}
               >
                 <circle
                   r={72}
                   fill={palette.fill}
-                  stroke={palette.stroke}
+                  stroke={strokeColor}
                   strokeWidth={2.5}
-                  style={{ filter: `drop-shadow(${palette.shadow})` }}
+                  style={{ filter: `drop-shadow(${shadowColor})`, transition: 'filter 0.2s ease, stroke 0.2s ease' }}
                 />
                 <text
                   textAnchor="middle"
@@ -497,6 +513,8 @@ GraphCanvas.propTypes = {
   sourceId: PropTypes.string,
   targetId: PropTypes.string,
   isInteractionDisabled: PropTypes.bool,
+  useUniformColors: PropTypes.bool,
+  activeNodeId: PropTypes.string,
 };
 
 GraphCanvas.defaultProps = {
@@ -504,6 +522,8 @@ GraphCanvas.defaultProps = {
   sourceId: undefined,
   targetId: undefined,
   isInteractionDisabled: false,
+  useUniformColors: false,
+  activeNodeId: undefined,
 };
 
 const CrosshairIcon = (props) => (

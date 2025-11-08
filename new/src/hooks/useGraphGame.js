@@ -3,10 +3,12 @@ import fetchNeighbors from '../utils/fetchNeighbors.js';
 
 const ENDPOINTS_URL = 'https://api.sixdegrees.kabirwahi.com/api/football?path=endpoints';
 
-const useGraphGame = ({ maxSteps = 6 } = {}) => {
-  const [loading, setLoading] = useState(true);
+const useGraphGame = ({ maxSteps = 6, mode = 'challenge' } = {}) => {
+  const isChallengeMode = mode === 'challenge';
+  const [loading, setLoading] = useState(isChallengeMode);
   const [error, setError] = useState(null);
   const [endpoints, setEndpoints] = useState(null);
+  const [manualSource, setManualSource] = useState(null);
   const [graphNodes, setGraphNodes] = useState([]);
   const [graphLinks, setGraphLinks] = useState([]);
   const [neighborsMap, setNeighborsMap] = useState({});
@@ -18,10 +20,6 @@ const useGraphGame = ({ maxSteps = 6 } = {}) => {
   const neighborsCacheRef = useRef({});
   const pendingRequestsRef = useRef({});
 
-  const sourceId = endpoints?.source?.[0];
-  const sourceLabel = endpoints?.source?.[1] ?? 'Unknown';
-  const targetId = endpoints?.target?.[0];
-
   const resetCaches = useCallback(() => {
     neighborsCacheRef.current = {};
     pendingRequestsRef.current = {};
@@ -31,6 +29,11 @@ const useGraphGame = ({ maxSteps = 6 } = {}) => {
   }, []);
 
   useEffect(() => {
+    if (!isChallengeMode) {
+      setLoading(false);
+      return;
+    }
+
     let isSubscribed = true;
     const fetchEndpoints = async () => {
       try {
@@ -60,10 +63,24 @@ const useGraphGame = ({ maxSteps = 6 } = {}) => {
     return () => {
       isSubscribed = false;
     };
-  }, [challengeSeed]);
+  }, [challengeSeed, isChallengeMode]);
+
+  const activeSource = isChallengeMode ? endpoints?.source ?? null : manualSource;
+  const activeTarget = isChallengeMode ? endpoints?.target ?? null : null;
+
+  const sourceId = activeSource?.[0];
+  const sourceLabel = activeSource?.[1] ?? 'Unknown';
+  const targetId = activeTarget?.[0];
 
   useEffect(() => {
-    if (!sourceId) return;
+    if (!sourceId) {
+      setGraphNodes([]);
+      setGraphLinks([]);
+      setResultState(null);
+      resetCaches();
+      return;
+    }
+
     setGraphNodes([
       {
         id: sourceId,
@@ -187,14 +204,31 @@ const useGraphGame = ({ maxSteps = 6 } = {}) => {
     return promise;
   }, []);
 
-  const handleNewChallenge = useCallback(() => {
-    resetCaches();
+  const setManualStart = useCallback((nodeId, label) => {
+    if (!nodeId || !label) return;
+    setManualSource([nodeId, label]);
+  }, []);
+
+  const resetManualGame = useCallback(() => {
+    setManualSource(null);
     setGraphNodes([]);
     setGraphLinks([]);
-    setEndpoints(null);
     setResultState(null);
-    setChallengeSeed((prev) => prev + 1);
+    resetCaches();
   }, [resetCaches]);
+
+  const handleNewChallenge = useCallback(() => {
+    if (isChallengeMode) {
+      resetCaches();
+      setGraphNodes([]);
+      setGraphLinks([]);
+      setEndpoints(null);
+      setResultState(null);
+      setChallengeSeed((prev) => prev + 1);
+    } else {
+      resetManualGame();
+    }
+  }, [isChallengeMode, resetCaches, resetManualGame]);
 
   const steps = useMemo(() => Math.max(0, graphNodes.length - 1), [graphNodes]);
   const gameComplete = Boolean(resultState?.status);
@@ -203,8 +237,8 @@ const useGraphGame = ({ maxSteps = 6 } = {}) => {
     loading,
     error,
     endpoints,
-    source: endpoints?.source ?? null,
-    target: endpoints?.target ?? null,
+    source: activeSource,
+    target: activeTarget,
     graphNodes,
     graphLinks,
     steps,
@@ -217,6 +251,8 @@ const useGraphGame = ({ maxSteps = 6 } = {}) => {
     requestNeighbors,
     connectNode,
     startNewChallenge: handleNewChallenge,
+    setManualSource: setManualStart,
+    resetManualGame,
   };
 };
 
