@@ -4,8 +4,6 @@ import {
   Box,
   Flex,
   Heading,
-  Icon,
-  IconButton,
   Link,
   Stack,
   Text,
@@ -33,16 +31,8 @@ const MODES = [
   },
 ];
 
-const DAILY_PAIRS = [
-  ['Sam Kerr', 'Erling Haaland'],
-  ['Alexia Putellas', 'Lionel Messi'],
-  ['Megan Rapinoe', 'Kylian Mbappé'],
-  ['Jude Bellingham', 'Sophia Smith'],
-];
-
 const HomeView = ({ onSelectMode, onLearnMore }) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [dailyPair] = useState(() => DAILY_PAIRS[Math.floor(Math.random() * DAILY_PAIRS.length)]);
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
   const handleSelect = useCallback(
     (mode) => {
@@ -57,13 +47,25 @@ const HomeView = ({ onSelectMode, onLearnMore }) => {
     const handleKeyDown = (event) => {
       if (event.key === 'ArrowRight') {
         event.preventDefault();
-        setSelectedIndex((prev) => (prev + 1) % MODES.length);
+        setSelectedIndex((prev) => {
+          if (prev === null) {
+            return MODES.length >= 3 ? 2 : MODES.length - 1;
+          }
+          return (prev + 1) % MODES.length;
+        });
       } else if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        setSelectedIndex((prev) => (prev - 1 + MODES.length) % MODES.length);
+        setSelectedIndex((prev) => {
+          if (prev === null) {
+            return 0;
+          }
+          return (prev - 1 + MODES.length) % MODES.length;
+        });
       } else if (event.key === 'Enter') {
-        event.preventDefault();
-        handleSelect(MODES[selectedIndex]);
+        if (selectedIndex !== null) {
+          event.preventDefault();
+          handleSelect(MODES[selectedIndex]);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -89,20 +91,21 @@ const HomeView = ({ onSelectMode, onLearnMore }) => {
             px={5}
             py={2}
             borderRadius="full"
-            border="1px solid rgba(255,255,255,0.08)"
-            bg="rgba(255,255,255,0.02)"
-            color="#9CA3AF"
+            border="1px solid rgba(255,255,255,0.18)"
+            bg="rgba(255,255,255,0.04)"
+            color="#CED3FF"
             letterSpacing="0.2em"
             fontSize="sm"
             textTransform="uppercase"
+            boxShadow="0 12px 30px -18px rgba(109, 116, 209, 0.6)"
           >
             Six Degrees of Football
           </Box>
           <Heading size="2xl" color="#E4E8FF" letterSpacing="-0.02em">
-            Connect the world of football in six steps.
+            Connect the world of football in six steps
           </Heading>
           <Text fontSize="lg" color="#9CA3AF">
-            Explore thirteen seasons across Europe’s top leagues. Choose a mode and jump straight into the network.
+            Explore thirteen seasons across Europe’s top leagues
           </Text>
         </Stack>
 
@@ -144,35 +147,6 @@ const HomeView = ({ onSelectMode, onLearnMore }) => {
         Learn More
       </Link>
 
-      <Box
-        position="absolute"
-        bottom={{ base: 4, md: 6 }}
-        right={{ base: 4, md: 6 }}
-        display="flex"
-        alignItems="center"
-        gap={3}
-        bg="rgba(15,19,31,0.85)"
-        border="1px solid rgba(255,255,255,0.08)"
-        borderRadius="full"
-        px={4}
-        py={2}
-        boxShadow="0 12px 32px -18px rgba(0,0,0,0.65)"
-      >
-        <Text fontSize="xs" color="#9CA3AF" letterSpacing="0.2em">
-          Daily Challenge
-        </Text>
-        <Text fontSize="sm" color="#E4E8FF" fontWeight="600">
-          {dailyPair[0]} → {dailyPair[1]}
-        </Text>
-        <IconButton
-          variant="ghost"
-          size="sm"
-          aria-label="Play daily challenge"
-          icon={<ArrowIcon boxSize={4} />}
-          color="#E4E8FF"
-          onClick={() => handleSelect(MODES[2])}
-        />
-      </Box>
     </Box>
   );
 };
@@ -206,12 +180,5 @@ HomeView.propTypes = {
   onSelectMode: PropTypes.func.isRequired,
   onLearnMore: PropTypes.func.isRequired,
 };
-
-const ArrowIcon = (props) => (
-  <Icon viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-    <path d="M5 12h14" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-  </Icon>
-);
 
 export default HomeView;

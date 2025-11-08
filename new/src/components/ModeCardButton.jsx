@@ -27,10 +27,10 @@ const ModeCardButton = ({
     transition="all 0.25s ease"
     textAlign="left"
     _hover={{
-      transform: 'translateY(-3px)',
-      borderColor: `${accent}66`,
-      boxShadow: `0 16px 30px -18px ${accent}80`,
-      _after: { opacity: 0.12 },
+      transform: 'translateY(-4px) scale(1.01)',
+      borderColor: `${accent}aa`,
+      boxShadow: `0 25px 45px -20px ${accent}aa`,
+      _after: { opacity: 0.16 },
     }}
     _focusVisible={{
       outline: '2px solid',
@@ -40,6 +40,7 @@ const ModeCardButton = ({
     boxShadow={
       isSelected ? `0 25px 45px -20px ${accent}aa` : '0 12px 24px -18px rgba(0,0,0,0.45)'
     }
+    w={{ base: '100%', md: '320px' }}
     _after={{
       content: '""',
       position: 'absolute',
