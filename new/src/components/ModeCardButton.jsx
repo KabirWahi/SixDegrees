@@ -1,13 +1,20 @@
 import { Box, Text } from '@chakra-ui/react';
 import PropTypes from 'prop-types';
 
-const ModeCardButton = ({ accent, label, description, onClick = undefined, ...props }) => (
+const ModeCardButton = ({
+  accent,
+  label,
+  description,
+  onClick = undefined,
+  isSelected = false,
+  ...props
+}) => (
   <Box
     as="button"
     type="button"
     bg="#10131F"
     borderRadius="2xl"
-    border="1px solid rgba(255,255,255,0.05)"
+    border={isSelected ? `1px solid ${accent}` : '1px solid rgba(255,255,255,0.05)'}
     px={{ base: 6, md: 8 }}
     py={{ base: 8, md: 10 }}
     display="flex"
@@ -30,11 +37,14 @@ const ModeCardButton = ({ accent, label, description, onClick = undefined, ...pr
       outlineColor: `${accent}99`,
       outlineOffset: '4px',
     }}
+    boxShadow={
+      isSelected ? `0 25px 45px -20px ${accent}aa` : '0 12px 24px -18px rgba(0,0,0,0.45)'
+    }
     _after={{
       content: '""',
       position: 'absolute',
       inset: 0,
-      bg: accent,
+      bg: `linear-gradient(120deg, ${accent}33, transparent 70%)`,
       opacity: 0,
       transition: 'opacity 0.25s ease',
       pointerEvents: 'none',
@@ -78,6 +88,7 @@ ModeCardButton.propTypes = {
   label: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
   onClick: PropTypes.func,
+  isSelected: PropTypes.bool,
 };
 
 export default ModeCardButton;
