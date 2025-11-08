@@ -3,20 +3,31 @@ import PropTypes from 'prop-types';
 import {
   Box,
   CloseButton,
+  Flex,
   Drawer,
   DrawerBody,
   DrawerContent,
   DrawerOverlay,
-  Flex,
   Input,
   InputGroup,
   InputRightElement,
   Stack,
   Text,
+  Tooltip,
 } from '@chakra-ui/react';
 import normalizeText from '../utils/normalizeText.js';
 
-const RightNeighborsPanel = ({ isOpen, neighbors, isLoading, error, onClose }) => {
+const RightNeighborsPanel = ({
+  isOpen,
+  neighbors = [],
+  isLoading = false,
+  error = null,
+  onClose,
+  onNeighborSelect = undefined,
+  selectedNodeName = 'Unknown',
+  disabledNeighborIds = new Set(),
+  isSelectionDisabled = false,
+}) => {
   const [query, setQuery] = useState('');
   const inputRef = useRef(null);
 
@@ -84,14 +95,14 @@ const RightNeighborsPanel = ({ isOpen, neighbors, isLoading, error, onClose }) =
       >
         <DrawerBody px={6} py={6} display="flex" flexDirection="column" gap={4}>
           <Box position="sticky" top={0} zIndex={1} bg="#0F1320" pt={2} pb={4}>
-            <Flex justify="flex-end" mb={3}>
-              <CloseButton
-                onClick={onClose}
-                color="#9CA3AF"
-                _hover={{ bg: 'rgba(255,255,255,0.08)' }}
-                size="lg"
-              />
-            </Flex>
+            <Stack spacing={1} mb={4}>
+              <Text fontSize="xs" letterSpacing="0.3em" color="rgba(255,255,255,0.5)">
+                CURRENT NODE
+              </Text>
+              <Text fontSize="lg" fontWeight="600" color="#E4E8FF" noOfLines={2}>
+                {selectedNodeName ?? 'Unknown'}
+              </Text>
+            </Stack>
 
             <InputGroup>
               <Input
@@ -145,20 +156,60 @@ const RightNeighborsPanel = ({ isOpen, neighbors, isLoading, error, onClose }) =
               </Flex>
             ) : (
               <Stack spacing={2}>
-                {filteredNeighbors.map(([neighborId, neighborName]) => (
-                  <Box
-                    key={neighborId}
-                    borderRadius="lg"
-                    px={4}
-                    py={3}
-                    color="#E4E8FF"
-                    bg="rgba(255,255,255,0.02)"
-                    transition="background 120ms ease"
-                    _hover={{ bg: 'rgba(255,255,255,0.04)' }}
-                  >
-                    {neighborName}
-                  </Box>
-                ))}
+                {filteredNeighbors.map(([neighborId, neighborName]) => {
+                  const isDisabled =
+                    isSelectionDisabled ||
+                    (Boolean(disabledNeighborIds?.has) && disabledNeighborIds.has(neighborId));
+
+                  const handleClick = () => {
+                    if (!onNeighborSelect || isDisabled) return;
+                    onNeighborSelect(neighborId, neighborName);
+                    setQuery('');
+                    requestAnimationFrame(() => {
+                      if (inputRef.current) {
+                        inputRef.current.focus();
+                        inputRef.current.select();
+                      }
+                    });
+                  };
+
+                  return (
+                    <Tooltip
+                      key={neighborId}
+                      label="Already on the board"
+                      isDisabled={!isDisabled}
+                      placement="left"
+                      shouldWrapChildren
+                    >
+                      <Box
+                        as={onNeighborSelect ? 'button' : 'div'}
+                        type={onNeighborSelect ? 'button' : undefined}
+                        borderRadius="lg"
+                        px={4}
+                        py={3}
+                        color={isDisabled ? 'rgba(228, 232, 255, 0.6)' : '#E4E8FF'}
+                        bg="rgba(255,255,255,0.02)"
+                        transition="background 120ms ease"
+                        _hover={{ bg: 'rgba(255,255,255,0.04)' }}
+                        textAlign="left"
+                        w="100%"
+                        onClick={onNeighborSelect && !isSelectionDisabled ? handleClick : undefined}
+                        cursor={isDisabled ? 'not-allowed' : 'pointer'}
+                        aria-disabled={isDisabled}
+                        _focusVisible={
+                          onNeighborSelect && !isDisabled
+                            ? {
+                                outline: '2px solid rgba(56, 232, 198, 0.65)',
+                                outlineOffset: '2px',
+                              }
+                            : undefined
+                        }
+                      >
+                        {neighborName}
+                      </Box>
+                    </Tooltip>
+                  );
+                })}
               </Stack>
             )}
           </Box>
@@ -174,12 +225,10 @@ RightNeighborsPanel.propTypes = {
   isLoading: PropTypes.bool,
   error: PropTypes.any,
   onClose: PropTypes.func.isRequired,
-};
-
-RightNeighborsPanel.defaultProps = {
-  neighbors: [],
-  isLoading: false,
-  error: null,
+  onNeighborSelect: PropTypes.func,
+  selectedNodeName: PropTypes.string,
+  disabledNeighborIds: PropTypes.instanceOf(Set),
+  isSelectionDisabled: PropTypes.bool,
 };
 
 export default RightNeighborsPanel;

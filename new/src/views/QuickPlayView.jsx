@@ -5,9 +5,16 @@ import {
   Alert,
   AlertIcon,
   Box,
+  Button,
   Flex,
   Icon,
   IconButton,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Spinner,
   Stack,
   Text,
@@ -48,6 +55,9 @@ const QuickPlayView = ({ onBack }) => {
   const [error, setError] = useState(null);
   const [endpoints, setEndpoints] = useState(null);
   const [showRecenter, setShowRecenter] = useState(false);
+  const [graphNodes, setGraphNodes] = useState([]);
+  const [graphLinks, setGraphLinks] = useState([]);
+  const [gameVersion, setGameVersion] = useState(0);
   const svgRef = useRef(null);
   const graphLayerRef = useRef(null);
   const zoomBehaviorRef = useRef(null);
@@ -68,8 +78,9 @@ const QuickPlayView = ({ onBack }) => {
   const [panelState, setPanelState] = useState({
     isOpen: false,
     nodeId: null,
+    nodeName: 'Unknown',
   });
-  const steps = 0;
+  const [resultState, setResultState] = useState(null);
   const maxSteps = 6;
 
   useEffect(() => {
@@ -149,7 +160,7 @@ const QuickPlayView = ({ onBack }) => {
     return () => {
       isSubscribed = false;
     };
-  }, []);
+  }, [gameVersion]);
 
   const refsReady = Boolean(svgRef.current && graphLayerRef.current);
 
@@ -191,18 +202,30 @@ const QuickPlayView = ({ onBack }) => {
     };
   }, [refsReady]);
 
+  const sourceId = endpoints?.source?.[0];
   const sourceName = endpoints?.source?.[1] ?? 'Unknown';
+  const targetId = endpoints?.target?.[0];
   const targetName = endpoints?.target?.[1] ?? 'Unknown';
 
-  const graphNodes = useMemo(() => {
-    if (!endpoints?.source) return [];
-    return [
+  useEffect(() => {
+    if (!sourceId) return;
+    setPanelState({ isOpen: false, nodeId: null, nodeName: 'Unknown' });
+    setGraphNodes([
       {
-        id: endpoints.source[0],
+        id: sourceId,
         label: sourceName,
+        parentId: null,
       },
-    ];
-  }, [endpoints, sourceName]);
+    ]);
+    setGraphLinks([]);
+    latestPositionsRef.current = {};
+    setNodePositions({});
+    setNeighborsMap({});
+    setErrorByNode({});
+    neighborsCacheRef.current = {};
+    pendingRequestsRef.current = {};
+    setResultState(null);
+  }, [sourceId, sourceName]);
 
 
   const scheduleResetRelease = useCallback((duration = 0, hideButton = false) => {
@@ -337,6 +360,53 @@ const QuickPlayView = ({ onBack }) => {
   const panelNeighbors = panelState.nodeId ? neighborsMap[panelState.nodeId] ?? [] : [];
   const panelLoading = Boolean(panelState.nodeId && loadingNodeId === panelState.nodeId);
   const panelError = panelState.nodeId ? errorByNode[panelState.nodeId] : null;
+  const onboardNodeIds = useMemo(
+    () => new Set(graphNodes.map((node) => node.id)),
+    [graphNodes],
+  );
+  const hasReachedTarget = useMemo(
+    () => Boolean(targetId && graphNodes.some((node) => node.id === targetId)),
+    [targetId, graphNodes],
+  );
+  const steps = useMemo(() => Math.max(0, graphNodes.length - 1), [graphNodes]);
+  const gameComplete = Boolean(resultState?.status);
+
+  const connectNode = useCallback(
+    (parentId, nodeId, label) => {
+      if (!nodeId || !label) return false;
+      let addedNode = false;
+      setGraphNodes((prev) => {
+        if (prev.some((node) => node.id === nodeId)) {
+          return prev;
+        }
+        addedNode = true;
+        return [
+          ...prev,
+          {
+            id: nodeId,
+            label,
+            parentId: parentId ?? null,
+          },
+        ];
+      });
+      if (parentId) {
+        setGraphLinks((prev) => {
+          if (prev.some((link) => link.source === parentId && link.target === nodeId)) {
+            return prev;
+          }
+          return [
+            ...prev,
+            {
+              source: parentId,
+              target: nodeId,
+            },
+          ];
+        });
+      }
+      return addedNode;
+    },
+    [],
+  );
 
   const requestNeighbors = useCallback(
     (nodeId, options = {}) => {
@@ -400,11 +470,30 @@ const QuickPlayView = ({ onBack }) => {
 
   const handleNodeClick = useCallback(
     (nodeId) => {
-      if (!nodeId) return;
-      setPanelState({ isOpen: true, nodeId });
+      if (!nodeId || gameComplete) return;
+      const currentNode = graphNodes.find((node) => node.id === nodeId);
+      setPanelState({
+        isOpen: true,
+        nodeId,
+        nodeName: currentNode?.label ?? 'Unknown',
+      });
       requestNeighbors(nodeId).catch(() => {});
     },
-    [requestNeighbors],
+    [gameComplete, graphNodes, requestNeighbors],
+  );
+
+  const handleNeighborSelect = useCallback(
+    (neighborId, neighborName) => {
+      if (!panelState.nodeId || !neighborId || gameComplete) return;
+      connectNode(panelState.nodeId, neighborId, neighborName);
+      setPanelState({
+        isOpen: true,
+        nodeId: neighborId,
+        nodeName: neighborName,
+      });
+      requestNeighbors(neighborId).catch(() => {});
+    },
+    [connectNode, gameComplete, panelState.nodeId, requestNeighbors],
   );
 
   useEffect(() => {
@@ -414,18 +503,34 @@ const QuickPlayView = ({ onBack }) => {
       return;
     }
 
-    const nodesCopy = graphNodes.map((node) => ({
-      ...node,
-      x: canvasSize.width / 2,
-      y: canvasSize.height / 2,
-    }));
+    const nodesCopy = graphNodes.map((node) => {
+      const existing = latestPositionsRef.current[node.id];
+      const parentPosition = node.parentId ? latestPositionsRef.current[node.parentId] : null;
+      const fallbackX = parentPosition?.x ?? canvasSize.width / 2;
+      const fallbackY = parentPosition?.y ?? canvasSize.height / 2;
+      return {
+        ...node,
+        x: existing?.x ?? fallbackX,
+        y: existing?.y ?? fallbackY,
+      };
+    });
+
+    const linksCopy = graphLinks.map((link) => ({ ...link }));
 
     let simulation = null;
     if (graphNodes.length > 1) {
       simulation = d3
         .forceSimulation(nodesCopy)
+        .force(
+          'link',
+          d3
+            .forceLink(linksCopy)
+            .id((node) => node.id)
+            .distance(200)
+            .strength(0.3),
+        )
         .force('center', d3.forceCenter(canvasSize.width / 2, canvasSize.height / 2))
-        .force('charge', d3.forceManyBody().strength(-60))
+        .force('charge', d3.forceManyBody().strength(-80))
         .force('collision', d3.forceCollide().radius(80))
         .stop();
 
@@ -457,6 +562,7 @@ const QuickPlayView = ({ onBack }) => {
     };
   }, [
     graphNodes,
+    graphLinks,
     canvasSize.width,
     canvasSize.height,
     zoomReady,
@@ -465,8 +571,40 @@ const QuickPlayView = ({ onBack }) => {
   ]);
 
   const handleClosePanel = useCallback(() => {
-    setPanelState({ isOpen: false, nodeId: null });
+    setPanelState({ isOpen: false, nodeId: null, nodeName: 'Unknown' });
   }, []);
+
+  useEffect(() => {
+    if (!endpoints || !sourceId || gameComplete) return;
+    if (hasReachedTarget) {
+      setResultState({ status: 'win' });
+      return;
+    }
+    if (steps >= maxSteps && steps > 0 && !hasReachedTarget) {
+      setResultState({ status: 'lose' });
+    }
+  }, [endpoints, sourceId, hasReachedTarget, steps, maxSteps, gameComplete]);
+
+  const handleNewChallenge = useCallback(() => {
+    setResultState(null);
+    setPanelState({ isOpen: false, nodeId: null, nodeName: 'Unknown' });
+    setGraphNodes([]);
+    setGraphLinks([]);
+    setNeighborsMap({});
+    setErrorByNode({});
+    neighborsCacheRef.current = {};
+    pendingRequestsRef.current = {};
+    setEndpoints(null);
+    setLoading(true);
+    setGameVersion((prev) => prev + 1);
+  }, []);
+
+  const resultTitle =
+    resultState?.status === 'win' ? 'You Win!' : 'Out of Steps';
+  const resultDescription =
+    resultState?.status === 'win'
+      ? 'You connected the players before running out of moves.'
+      : 'You reached the maximum of six steps without finding the target.';
 
   return (
     <Box bg="#060912" minH="100vh">
@@ -483,11 +621,6 @@ const QuickPlayView = ({ onBack }) => {
           title="Quick Play"
           subtitle="Connect the source player to the target in six steps or fewer."
           onBack={onBack}
-          rightContent={
-            <Text fontSize={{ base: 'sm', md: 'md' }} color="#9CA3AF" minW="fit-content">
-              Steps: {steps} / {maxSteps}
-            </Text>
-          }
           containerProps={{
             px: { base: 4, md: 6 },
             pt: 0,
@@ -572,12 +705,42 @@ const QuickPlayView = ({ onBack }) => {
                   style={{ display: 'block', cursor: isPanning ? 'grabbing' : 'grab' }}
                 >
                   <g ref={graphLayerRef}>
+                    {graphLinks.map((link) => {
+                      const sourcePosition = nodePositions[link.source];
+                      const targetPosition = nodePositions[link.target];
+                      if (!sourcePosition || !targetPosition) {
+                        return null;
+                      }
+                      return (
+                        <line
+                          key={`${link.source}-${link.target}`}
+                          x1={sourcePosition.x}
+                          y1={sourcePosition.y}
+                          x2={targetPosition.x}
+                          y2={targetPosition.y}
+                          stroke="rgba(56, 232, 198, 0.4)"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                        />
+                      );
+                    })}
                     {graphNodes.map((node) => {
                       const position =
                         nodePositions[node.id] ?? {
                           x: canvasSize.width / 2,
                           y: canvasSize.height / 2,
                         };
+                      const isSourceNode = node.id === sourceId;
+                      const isTargetNode = node.id === targetId;
+                      let circleFill = 'rgba(56, 232, 198, 0.18)';
+                      let circleStroke = 'rgba(56, 232, 198, 0.5)';
+                      let shadowColor = '0px 10px 25px rgba(56, 232, 198, 0.35)';
+
+                      if (!isSourceNode && !isTargetNode) {
+                        circleFill = 'rgba(109, 116, 209, 0.22)';
+                        circleStroke = 'rgba(109, 116, 209, 0.6)';
+                        shadowColor = '0px 10px 25px rgba(109, 116, 209, 0.35)';
+                      }
 
                       return (
                         <g
@@ -588,10 +751,10 @@ const QuickPlayView = ({ onBack }) => {
                         >
                           <circle
                             r={72}
-                            fill="rgba(56, 232, 198, 0.18)"
-                            stroke="rgba(56, 232, 198, 0.5)"
+                            fill={circleFill}
+                            stroke={circleStroke}
                             strokeWidth={2.5}
-                            style={{ filter: 'drop-shadow(0px 10px 25px rgba(56, 232, 198, 0.35))' }}
+                            style={{ filter: `drop-shadow(${shadowColor})` }}
                           />
                           <text
                             textAnchor="middle"
@@ -632,11 +795,32 @@ const QuickPlayView = ({ onBack }) => {
                 isLoading={panelLoading}
                 error={panelError}
                 onClose={handleClosePanel}
+                onNeighborSelect={handleNeighborSelect}
+                selectedNodeName={panelState.nodeName}
+                disabledNeighborIds={onboardNodeIds}
+                isSelectionDisabled={gameComplete}
               />
             </>
           )}
         </Box>
       </Flex>
+      <Modal isOpen={Boolean(resultState)} onClose={() => {}} isCentered closeOnOverlayClick={false}>
+        <ModalOverlay />
+        <ModalContent bg="#0F1320" border="1px solid rgba(255,255,255,0.08)" borderRadius="2xl">
+          <ModalHeader color="#E4E8FF">{resultTitle}</ModalHeader>
+          <ModalBody>
+            <Text color="#9CA3AF">{resultDescription}</Text>
+          </ModalBody>
+          <ModalFooter display="flex" gap={3}>
+            <Button variant="outline" borderColor="rgba(255,255,255,0.2)" color="#E4E8FF" onClick={onBack}>
+              Back to Modes
+            </Button>
+            <Button colorScheme="brand" onClick={handleNewChallenge}>
+              New Challenge
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

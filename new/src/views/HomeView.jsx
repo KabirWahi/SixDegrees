@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import StatPanel from '../components/StatPanel.jsx';
 
-const HomeView = ({ onPlay, onLearnMore, isPlayLoading }) => (
+const HomeView = ({ onPlay, onLearnMore, isPlayLoading = false }) => (
   <Box
     minH="100vh"
     bgGradient="linear(to-br, #0B0E17, #10131F)"
@@ -128,10 +128,6 @@ HomeView.propTypes = {
   onPlay: PropTypes.func.isRequired,
   onLearnMore: PropTypes.func.isRequired,
   isPlayLoading: PropTypes.bool,
-};
-
-HomeView.defaultProps = {
-  isPlayLoading: false,
 };
 
 export default HomeView;

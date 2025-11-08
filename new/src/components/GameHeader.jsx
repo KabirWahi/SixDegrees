@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 
 const GameHeader = ({
   title,
-  subtitle,
-  onBack,
-  rightContent,
-  backButtonProps,
-  containerProps,
+  subtitle = undefined,
+  onBack = undefined,
+  rightContent = null,
+  backButtonProps = {},
+  containerProps = {},
 }) => (
   <Box position="relative" {...containerProps}>
     <Flex
@@ -67,14 +67,6 @@ GameHeader.propTypes = {
   rightContent: PropTypes.node,
   backButtonProps: PropTypes.object,
   containerProps: PropTypes.object,
-};
-
-GameHeader.defaultProps = {
-  subtitle: undefined,
-  onBack: undefined,
-  rightContent: null,
-  backButtonProps: {},
-  containerProps: {},
 };
 
 export default GameHeader;
