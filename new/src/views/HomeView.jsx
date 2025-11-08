@@ -137,12 +137,13 @@ const HomeView = ({ onSelectMode, onLearnMore }) => {
         position="absolute"
         top={{ base: 4, md: 6 }}
         right={{ base: 4, md: 6 }}
-        fontSize="sm"
         color="#E4E8FF"
         letterSpacing="0.2em"
+        fontSize="sm"
         textTransform="uppercase"
         onClick={onLearnMore}
-        _hover={{ color: '#fff' }}
+        _hover={{ color: '#fff', textDecoration: 'none' }}
+        zIndex={2}
       >
         Learn More
       </Link>

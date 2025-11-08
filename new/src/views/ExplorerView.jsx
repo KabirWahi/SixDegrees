@@ -50,8 +50,6 @@ const ExplorerView = ({ onBack }) => {
   const [playerError, setPlayerError] = useState(null);
 
   const sourceId = source?.[0];
-  const sourceName = source?.[1] ?? 'Unknown';
-
   useEffect(() => {
     let isMounted = true;
     const fetchPlayers = async () => {

@@ -57,7 +57,6 @@ const TimedModeView = ({ onBack }) => {
   const bonusTimeoutRef = useRef(null);
 
   const sourceId = source?.[0];
-  const sourceName = source?.[1] ?? 'Unknown';
   const targetId = target?.[0];
   const targetName = target?.[1] ?? 'Unknown';
 
@@ -164,7 +163,6 @@ const TimedModeView = ({ onBack }) => {
     setTimeRemaining(INITIAL_TIME_SECONDS);
     setScore(0);
     setIsTimeUp(false);
-    setBonusActive(false);
     handleClosePanel();
     startNewChallenge();
   }, [handleClosePanel, startNewChallenge]);

@@ -4,7 +4,7 @@ const removeDiacritics = (value) => {
 
   try {
     return normalized.replace(/\p{Diacritic}/gu, '');
-  } catch (error) {
+  } catch {
     // Fallback for environments lacking Unicode property escapes support.
     return normalized.replace(/[\u0300-\u036f]/g, '');
   }

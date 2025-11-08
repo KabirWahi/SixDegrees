@@ -35,7 +35,7 @@ const responseIsPong = (body) => {
   try {
     const parsed = JSON.parse(trimmed);
     return typeof parsed?.message === 'string' && parsed.message.toLowerCase() === 'pong';
-  } catch (error) {
+  } catch {
     return false;
   }
 };
@@ -60,7 +60,7 @@ export const pingForPlay = async () => {
       }
 
       throw new Error('Unexpected ping response');
-    } catch (error) {
+    } catch {
       const isLastAttempt = attempt === MAX_ATTEMPTS;
       if (isLastAttempt) {
         return false;

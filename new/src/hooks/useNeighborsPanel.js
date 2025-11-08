@@ -93,9 +93,11 @@ const useNeighborsPanel = ({
         if (controller.signal.aborted || !isMountedRef.current) return;
         setErrorMap((prev) => createUpdatedMap(prev, nodeId, error));
       } finally {
-        if (controller.signal.aborted || !isMountedRef.current) return;
-        setLoadingMap((prev) => createUpdatedMap(prev, nodeId, undefined));
-        abortRef.current = null;
+        const shouldSkip = controller.signal.aborted || !isMountedRef.current;
+        if (!shouldSkip) {
+          setLoadingMap((prev) => createUpdatedMap(prev, nodeId, undefined));
+          abortRef.current = null;
+        }
       }
     },
     [neighborsMap, requestNeighbors, targetNodeId],

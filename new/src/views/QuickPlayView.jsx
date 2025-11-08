@@ -43,7 +43,6 @@ const QuickPlayView = ({ onBack }) => {
   });
 
   const sourceId = source?.[0];
-  const sourceName = source?.[1] ?? 'Unknown';
   const targetId = target?.[0];
   const targetName = target?.[1] ?? 'Unknown';
 
