@@ -11,7 +11,7 @@ const MODES = [
   },
   {
     label: 'Time Trial',
-    description: 'Beat the clock',
+    description: 'Race the clock',
     accent: '#FF5A7E',
   },
   {

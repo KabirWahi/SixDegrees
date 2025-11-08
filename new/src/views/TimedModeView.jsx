@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Alert,
@@ -53,8 +53,8 @@ const TimedModeView = ({ onBack }) => {
   const [timeRemaining, setTimeRemaining] = useState(INITIAL_TIME_SECONDS);
   const [score, setScore] = useState(0);
   const [isTimeUp, setIsTimeUp] = useState(false);
-  const [bonusActive, setBonusActive] = useState(false);
   const [bonusVisible, setBonusVisible] = useState(false);
+  const bonusTimeoutRef = useRef(null);
 
   const sourceId = source?.[0];
   const sourceName = source?.[1] ?? 'Unknown';
@@ -96,19 +96,37 @@ const TimedModeView = ({ onBack }) => {
     return () => clearInterval(interval);
   }, [isTimeUp]);
 
+  const triggerBonusFlash = useCallback(() => {
+    setBonusVisible(false);
+    requestAnimationFrame(() => {
+      setBonusVisible(true);
+      if (bonusTimeoutRef.current) {
+        clearTimeout(bonusTimeoutRef.current);
+      }
+      bonusTimeoutRef.current = setTimeout(() => {
+        setBonusVisible(false);
+        bonusTimeoutRef.current = null;
+      }, 2800);
+    });
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (bonusTimeoutRef.current) {
+        clearTimeout(bonusTimeoutRef.current);
+        bonusTimeoutRef.current = null;
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     if (resultState?.status !== 'win' || isTimeUp) return;
     setScore((prev) => prev + 1);
     setTimeRemaining((prev) => prev + BONUS_TIME_SECONDS);
-    setBonusActive(true);
-    setBonusVisible(true);
-    const timeout = setTimeout(() => {
-      setBonusVisible(false);
-      setTimeout(() => setBonusActive(false), 400);
-    }, 2600);
+    triggerBonusFlash();
     startNewChallenge();
-    return () => clearTimeout(timeout);
-  }, [isTimeUp, resultState?.status, startNewChallenge]);
+  }, [isTimeUp, resultState?.status, startNewChallenge, triggerBonusFlash]);
 
   const handleNodeClick = useCallback(
     (nodeId) => {
