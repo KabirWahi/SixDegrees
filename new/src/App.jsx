@@ -3,6 +3,7 @@ import { useToast } from '@chakra-ui/react';
 import HomeView from './views/HomeView.jsx';
 import ModeSelectView from './views/ModeSelectView.jsx';
 import QuickPlayView from './views/QuickPlayView.jsx';
+import TimedModeView from './views/TimedModeView.jsx';
 import { pingForPlay, warmOnRender } from './utils/apiWarmup.js';
 
 const App = () => {
@@ -18,6 +19,8 @@ const App = () => {
     (mode) => {
       if (mode === 'Quick Play') {
         setView('quick-play');
+      } else if (mode === 'Time Trial') {
+        setView('time-trial');
       }
     },
     [setView],
@@ -65,6 +68,10 @@ const App = () => {
 
   if (view === 'quick-play') {
     return <QuickPlayView onBack={() => setView('modes')} />;
+  }
+
+  if (view === 'time-trial') {
+    return <TimedModeView onBack={() => setView('modes')} />;
   }
 
   return (

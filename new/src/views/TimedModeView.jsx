@@ -10,13 +10,25 @@ import {
   Text,
 } from '@chakra-ui/react';
 import GameHeader from '../components/GameHeader.jsx';
-import RightNeighborsPanel from '../components/RightNeighborsPanel.jsx';
 import GraphCanvas from '../components/GraphCanvas.jsx';
+import RightNeighborsPanel from '../components/RightNeighborsPanel.jsx';
 import GameResultModal from '../components/GameResultModal.jsx';
 import InfoPill from '../components/InfoPill.jsx';
 import useGraphGame from '../hooks/useGraphGame.js';
 
-const QuickPlayView = ({ onBack }) => {
+const INITIAL_TIME_SECONDS = 120;
+const BONUS_TIME_SECONDS = 20;
+
+const formatTime = (seconds) => {
+  const clamped = Math.max(0, seconds);
+  const mins = Math.floor(clamped / 60)
+    .toString()
+    .padStart(2, '0');
+  const secs = (clamped % 60).toString().padStart(2, '0');
+  return `${mins}:${secs}`;
+};
+
+const TimedModeView = ({ onBack }) => {
   const {
     loading,
     error,
@@ -24,23 +36,25 @@ const QuickPlayView = ({ onBack }) => {
     target,
     graphNodes,
     graphLinks,
-    steps,
-    maxSteps,
-    resultState,
-    gameComplete,
     neighborsMap,
     loadingNodeId,
     errorByNode,
     requestNeighbors,
     connectNode,
     startNewChallenge,
-  } = useGraphGame({ maxSteps: 6 });
+    resultState,
+  } = useGraphGame({ maxSteps: null });
 
   const [panelState, setPanelState] = useState({
     isOpen: false,
     nodeId: null,
     nodeName: 'Unknown',
   });
+  const [timeRemaining, setTimeRemaining] = useState(INITIAL_TIME_SECONDS);
+  const [score, setScore] = useState(0);
+  const [isTimeUp, setIsTimeUp] = useState(false);
+  const [bonusActive, setBonusActive] = useState(false);
+  const [bonusVisible, setBonusVisible] = useState(false);
 
   const sourceId = source?.[0];
   const sourceName = source?.[1] ?? 'Unknown';
@@ -56,6 +70,10 @@ const QuickPlayView = ({ onBack }) => {
   );
 
   useEffect(() => {
+    setPanelState({ isOpen: false, nodeId: null, nodeName: 'Unknown' });
+  }, [sourceId]);
+
+  useEffect(() => {
     if (!sourceId) return;
     const controller = new AbortController();
     requestNeighbors(sourceId, { signal: controller.signal }).catch(() => {});
@@ -63,12 +81,38 @@ const QuickPlayView = ({ onBack }) => {
   }, [requestNeighbors, sourceId]);
 
   useEffect(() => {
-    setPanelState({ isOpen: false, nodeId: null, nodeName: 'Unknown' });
-  }, [sourceId]);
+    if (isTimeUp) return;
+    const interval = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setIsTimeUp(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isTimeUp]);
+
+  useEffect(() => {
+    if (resultState?.status !== 'win' || isTimeUp) return;
+    setScore((prev) => prev + 1);
+    setTimeRemaining((prev) => prev + BONUS_TIME_SECONDS);
+    setBonusActive(true);
+    setBonusVisible(true);
+    const timeout = setTimeout(() => {
+      setBonusVisible(false);
+      setTimeout(() => setBonusActive(false), 400);
+    }, 2600);
+    startNewChallenge();
+    return () => clearTimeout(timeout);
+  }, [isTimeUp, resultState?.status, startNewChallenge]);
 
   const handleNodeClick = useCallback(
     (nodeId) => {
-      if (!nodeId || gameComplete) return;
+      if (!nodeId || isTimeUp) return;
       const currentNode = graphNodes.find((node) => node.id === nodeId);
       setPanelState({
         isOpen: true,
@@ -77,12 +121,12 @@ const QuickPlayView = ({ onBack }) => {
       });
       requestNeighbors(nodeId).catch(() => {});
     },
-    [gameComplete, graphNodes, requestNeighbors],
+    [graphNodes, isTimeUp, requestNeighbors],
   );
 
   const handleNeighborSelect = useCallback(
     (neighborId, neighborName) => {
-      if (!panelState.nodeId || !neighborId || gameComplete) return;
+      if (!panelState.nodeId || !neighborId || isTimeUp) return;
       connectNode(panelState.nodeId, neighborId, neighborName);
       setPanelState({
         isOpen: true,
@@ -91,30 +135,23 @@ const QuickPlayView = ({ onBack }) => {
       });
       requestNeighbors(neighborId).catch(() => {});
     },
-    [connectNode, gameComplete, panelState.nodeId, requestNeighbors],
+    [connectNode, isTimeUp, panelState.nodeId, requestNeighbors],
   );
 
   const handleClosePanel = useCallback(() => {
     setPanelState({ isOpen: false, nodeId: null, nodeName: 'Unknown' });
   }, []);
 
-  const handleNewChallenge = useCallback(() => {
+  const handleReplay = useCallback(() => {
+    setTimeRemaining(INITIAL_TIME_SECONDS);
+    setScore(0);
+    setIsTimeUp(false);
+    setBonusActive(false);
     handleClosePanel();
     startNewChallenge();
   }, [handleClosePanel, startNewChallenge]);
 
-  const resultTitle =
-    resultState?.status === 'win'
-      ? 'You Win!'
-      : resultState?.status === 'lose'
-        ? 'Out of Steps'
-        : undefined;
-  const resultDescription =
-    resultState?.status === 'win'
-      ? 'You connected the players before running out of moves.'
-      : resultState?.status === 'lose'
-        ? 'You reached the maximum of six steps without finding the target.'
-        : undefined;
+  const formattedTime = formatTime(timeRemaining);
 
   return (
     <Box bg="#060912" minH="100vh">
@@ -128,8 +165,8 @@ const QuickPlayView = ({ onBack }) => {
         minW="0"
       >
         <GameHeader
-          title="Quick Play"
-          subtitle="Connect the source player to the target in six steps or fewer."
+          title="Time Trial"
+          subtitle="Race the clock to connect as many players as possible."
           onBack={onBack}
           containerProps={{
             px: { base: 4, md: 6 },
@@ -164,7 +201,7 @@ const QuickPlayView = ({ onBack }) => {
                 maxW="md"
               >
                 <AlertIcon />
-                {error.message ?? 'Unable to fetch quick play endpoints.'}
+                {error.message ?? 'Unable to fetch time trial endpoints.'}
               </Alert>
             </Flex>
           )}
@@ -179,14 +216,17 @@ const QuickPlayView = ({ onBack }) => {
                 zIndex={2}
                 pointerEvents="none"
               >
-                <Chip
+                <TimedChip
                   label="TARGET PLAYER"
                   value={targetName}
                   accent="rgba(255, 90, 126, 0.18)"
                   borderColor="rgba(255, 90, 126, 0.35)"
                   textColor="#FF5A7E"
                 />
-                <InfoPill label="STEPS" value={`${steps} / ${maxSteps}`} />
+                <Stack spacing={{ base: 2, md: 3 }}>
+                  <InfoPill label="TIME LEFT" value={formattedTime} />
+                  <InfoPill label="SCORE" value={score} />
+                </Stack>
               </Stack>
 
               <GraphCanvas
@@ -195,8 +235,26 @@ const QuickPlayView = ({ onBack }) => {
                 sourceId={sourceId}
                 targetId={targetId}
                 onNodeClick={handleNodeClick}
-                isInteractionDisabled={gameComplete}
+                isInteractionDisabled={isTimeUp}
               />
+
+              <Text
+                position="absolute"
+                top="12px"
+                left="50%"
+                transform="translateX(-50%)"
+                color="#38E8C6"
+                fontWeight="600"
+                fontSize={{ base: 'md', md: 'lg' }}
+                textAlign="center"
+                pointerEvents="none"
+                style={{
+                  opacity: bonusVisible ? 1 : 0,
+                  transition: 'opacity 0.4s ease',
+                }}
+              >
+                +20s
+              </Text>
 
               <RightNeighborsPanel
                 isOpen={panelState.isOpen}
@@ -207,7 +265,7 @@ const QuickPlayView = ({ onBack }) => {
                 onNeighborSelect={handleNeighborSelect}
                 selectedNodeName={panelState.nodeName}
                 disabledNeighborIds={onboardNodeIds}
-                isSelectionDisabled={gameComplete}
+                isSelectionDisabled={isTimeUp}
               />
             </>
           )}
@@ -215,22 +273,23 @@ const QuickPlayView = ({ onBack }) => {
       </Flex>
 
       <GameResultModal
-        isOpen={Boolean(resultState)}
-        status={resultState?.status}
-        title={resultTitle}
-        description={resultDescription}
+        isOpen={isTimeUp}
+        status="lose"
+        title="Time's Up"
+        description={`You connected ${score} ${score === 1 ? 'pair' : 'pairs'} before the clock ran out.`}
         onBack={onBack}
-        onReplay={handleNewChallenge}
+        onReplay={handleReplay}
+        replayLabel="Play Again"
       />
     </Box>
   );
 };
 
-QuickPlayView.propTypes = {
+TimedModeView.propTypes = {
   onBack: PropTypes.func.isRequired,
 };
 
-const Chip = ({ label, value, accent, borderColor, textColor }) => (
+const TimedChip = ({ label, value, accent, borderColor, textColor }) => (
   <Box
     px={{ base: 4, md: 5 }}
     py={{ base: 3, md: 3 }}
@@ -250,7 +309,7 @@ const Chip = ({ label, value, accent, borderColor, textColor }) => (
   </Box>
 );
 
-Chip.propTypes = {
+TimedChip.propTypes = {
   label: PropTypes.string.isRequired,
   value: PropTypes.string.isRequired,
   accent: PropTypes.string.isRequired,
@@ -258,4 +317,4 @@ Chip.propTypes = {
   textColor: PropTypes.string.isRequired,
 };
 
-export default QuickPlayView;
+export default TimedModeView;
