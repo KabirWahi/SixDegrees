@@ -233,6 +233,7 @@ const ExplorerView = ({ onBack }) => {
                 onNeighborSelect={handleNeighborSelect}
                 selectedNodeName={panelState.nodeName}
                 disabledNeighborIds={onboardNodeIds}
+                accentColor={EXPLORER_ACCENT}
               />
 
               {hasStartPlayer ? (

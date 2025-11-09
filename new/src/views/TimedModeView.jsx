@@ -302,6 +302,7 @@ const TimedModeView = ({ onBack }) => {
                 selectedNodeName={panelState.nodeName}
                 disabledNeighborIds={onboardNodeIds}
                 isSelectionDisabled={isTimeUp}
+                accentColor={TIME_TRIAL_ACCENT}
               />
             </>
           )}

@@ -223,6 +223,7 @@ const QuickPlayView = ({ onBack }) => {
                 selectedNodeName={panelState.nodeName}
                 disabledNeighborIds={onboardNodeIds}
                 isSelectionDisabled={gameComplete}
+                accentColor={QUICK_PLAY_ACCENT}
               />
             </>
           )}

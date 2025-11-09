@@ -402,13 +402,7 @@ const GraphCanvas = ({
     [],
   );
 
-  const linkGradient = useMemo(
-    () => ({
-      start: hexToRgba(accentColor, 0.35),
-      end: hexToRgba(accentColor, 0.05),
-    }),
-    [accentColor],
-  );
+  const linkStroke = useMemo(() => hexToRgba(accentColor, 0.28), [accentColor]);
 
   return (
     <Box position="absolute" inset="0" ref={containerRef}>
@@ -420,12 +414,6 @@ const GraphCanvas = ({
         aria-label="Player graph"
         style={{ display: 'block', cursor: isInteractionDisabled ? 'default' : isPanning ? 'grabbing' : 'grab' }}
       >
-        <defs>
-          <linearGradient id="linkGradient" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={linkGradient.start} />
-            <stop offset="100%" stopColor={linkGradient.end} />
-          </linearGradient>
-        </defs>
         <g ref={graphLayerRef}>
           {normalizedLinks.map((link) => {
             const sourcePosition = nodePositions[link.sourceId];
@@ -440,7 +428,7 @@ const GraphCanvas = ({
                 y1={sourcePosition.y}
                 x2={targetPosition.x}
                 y2={targetPosition.y}
-                stroke="url(#linkGradient)"
+                stroke={linkStroke}
                 strokeWidth={1.8}
                 strokeLinecap="round"
               />
