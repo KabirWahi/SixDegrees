@@ -13,7 +13,7 @@ import GameHeader from '../components/GameHeader.jsx';
 import RightNeighborsPanel from '../components/RightNeighborsPanel.jsx';
 import GraphCanvas from '../components/GraphCanvas.jsx';
 import GameResultModal from '../components/GameResultModal.jsx';
-import InfoPill from '../components/InfoPill.jsx';
+import { SidebarCounterCard, SidebarTargetCard } from '../components/SidebarCards.jsx';
 import useGraphGame from '../hooks/useGraphGame.js';
 
 const PAGE_BACKGROUND_PROPS = {
@@ -185,14 +185,16 @@ const QuickPlayView = ({ onBack }) => {
                 zIndex={2}
                 pointerEvents="none"
               >
-                <Chip
-                  label="TARGET PLAYER"
+                <SidebarTargetCard
+                  label="Target Player"
                   value={targetName}
-                  accent="rgba(255, 90, 126, 0.18)"
-                  borderColor="rgba(255, 90, 126, 0.35)"
-                  textColor="#FF5A7E"
+                  maxW={{ base: '260px', md: '320px' }}
                 />
-                <InfoPill label="STEPS" value={`${steps} / ${maxSteps}`} />
+                <SidebarCounterCard
+                  label="Steps"
+                  value={`${steps} / ${maxSteps}`}
+                  minW={{ base: '200px', md: '220px' }}
+                />
               </Stack>
 
               <GraphCanvas
@@ -235,34 +237,6 @@ const QuickPlayView = ({ onBack }) => {
 
 QuickPlayView.propTypes = {
   onBack: PropTypes.func.isRequired,
-};
-
-const Chip = ({ label, value, accent, borderColor, textColor }) => (
-  <Box
-    px={{ base: 4, md: 5 }}
-    py={{ base: 3, md: 3 }}
-    borderRadius="xl"
-    bg={accent}
-    border={`1px solid ${borderColor}`}
-    backdropFilter="blur(6px)"
-    maxW={{ base: '260px', md: '340px' }}
-    textAlign="center"
-  >
-    <Text fontSize="xs" letterSpacing="0.2em" color={textColor} mb={1} textAlign="center">
-      {label}
-    </Text>
-    <Text fontSize={{ base: 'md', md: 'lg' }} color="#E4E8FF" fontWeight="600" textAlign="center">
-      {value}
-    </Text>
-  </Box>
-);
-
-Chip.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
-  accent: PropTypes.string.isRequired,
-  borderColor: PropTypes.string.isRequired,
-  textColor: PropTypes.string.isRequired,
 };
 
 export default QuickPlayView;

@@ -13,7 +13,7 @@ import GameHeader from '../components/GameHeader.jsx';
 import GraphCanvas from '../components/GraphCanvas.jsx';
 import RightNeighborsPanel from '../components/RightNeighborsPanel.jsx';
 import GameResultModal from '../components/GameResultModal.jsx';
-import InfoPill from '../components/InfoPill.jsx';
+import { SidebarCounterCard, SidebarTargetCard } from '../components/SidebarCards.jsx';
 import useGraphGame from '../hooks/useGraphGame.js';
 
 const INITIAL_TIME_SECONDS = 120;
@@ -239,16 +239,22 @@ const TimedModeView = ({ onBack }) => {
                 zIndex={2}
                 pointerEvents="none"
               >
-                <TimedChip
-                  label="TARGET PLAYER"
+                <SidebarTargetCard
+                  label="Target Player"
                   value={targetName}
-                  accent="rgba(255, 90, 126, 0.18)"
-                  borderColor="rgba(255, 90, 126, 0.35)"
-                  textColor="#FF5A7E"
+                  maxW={{ base: '260px', md: '320px' }}
                 />
                 <Stack spacing={{ base: 2, md: 3 }}>
-                  <InfoPill label="TIME LEFT" value={formattedTime} />
-                  <InfoPill label="SCORE" value={score} />
+                  <SidebarCounterCard
+                    label="Time Left"
+                    value={formattedTime}
+                    minW={{ base: '200px', md: '220px' }}
+                  />
+                  <SidebarCounterCard
+                    label="Score"
+                    value={score}
+                    minW={{ base: '200px', md: '220px' }}
+                  />
                 </Stack>
               </Stack>
 
@@ -311,34 +317,6 @@ const TimedModeView = ({ onBack }) => {
 
 TimedModeView.propTypes = {
   onBack: PropTypes.func.isRequired,
-};
-
-const TimedChip = ({ label, value, accent, borderColor, textColor }) => (
-  <Box
-    px={{ base: 4, md: 5 }}
-    py={{ base: 3, md: 3 }}
-    borderRadius="xl"
-    bg={accent}
-    border={`1px solid ${borderColor}`}
-    backdropFilter="blur(6px)"
-    maxW={{ base: '260px', md: '340px' }}
-    textAlign="center"
-  >
-    <Text fontSize="xs" letterSpacing="0.2em" color={textColor} mb={1} textAlign="center">
-      {label}
-    </Text>
-    <Text fontSize={{ base: 'md', md: 'lg' }} color="#E4E8FF" fontWeight="600" textAlign="center">
-      {value}
-    </Text>
-  </Box>
-);
-
-TimedChip.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
-  accent: PropTypes.string.isRequired,
-  borderColor: PropTypes.string.isRequired,
-  textColor: PropTypes.string.isRequired,
 };
 
 export default TimedModeView;
