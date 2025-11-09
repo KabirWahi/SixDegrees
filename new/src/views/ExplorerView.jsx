@@ -2,10 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
+  CloseButton,
   Flex,
   Icon,
   IconButton,
   Input,
+  InputGroup,
+  InputRightElement,
   Modal,
   ModalBody,
   ModalContent,
@@ -265,6 +268,7 @@ const ExplorerView = ({ onBack }) => {
             searchValue={playerSearch}
             onSearchChange={setPlayerSearch}
             onSelectPlayer={handlePlayerSelect}
+            accentColor={EXPLORER_ACCENT}
           />
         </Box>
       </Flex>
@@ -302,8 +306,25 @@ const PlayerSelectModal = ({
   searchValue,
   onSearchChange,
   onSelectPlayer,
+  accentColor,
 }) => {
   const inputRef = useRef(null);
+  const listItemRefs = useRef([]);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const playerCount = players.length;
+  const hasPlayers = playerCount > 0;
+
+  listItemRefs.current = [];
+
+  useEffect(() => {
+    if (highlightedIndex >= playerCount) {
+      setHighlightedIndex(playerCount > 0 ? playerCount - 1 : -1);
+    }
+  }, [playerCount, highlightedIndex]);
+
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [isOpen, searchValue]);
 
   useEffect(() => {
     if (!isOpen || isLoading) return;
@@ -315,6 +336,58 @@ const PlayerSelectModal = ({
     });
     return () => cancelAnimationFrame(frame);
   }, [isOpen, isLoading]);
+
+  const handleSelect = useCallback(
+    (playerId, playerName) => {
+      if (!playerId || !playerName) return;
+      onSelectPlayer(playerId, playerName);
+      setHighlightedIndex(-1);
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.select();
+        }
+      });
+    },
+    [onSelectPlayer],
+  );
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleKey = (event) => {
+      if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key)) return;
+      if (isLoading || error || !hasPlayers) return;
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setHighlightedIndex((prev) => {
+          if (prev === -1 || prev >= players.length - 1) return 0;
+          return prev + 1;
+        });
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setHighlightedIndex((prev) => {
+          if (prev <= 0) return players.length - 1;
+          return prev - 1;
+        });
+      } else if (event.key === 'Enter') {
+        if (highlightedIndex < 0 || highlightedIndex >= players.length) return;
+        event.preventDefault();
+        const [playerId, playerName] = players[highlightedIndex];
+        handleSelect(playerId, playerName);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [error, handleSelect, hasPlayers, highlightedIndex, isLoading, isOpen, players]);
+
+  useEffect(() => {
+    if (highlightedIndex < 0) return;
+    const target = listItemRefs.current[highlightedIndex];
+    if (target) {
+      target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [highlightedIndex]);
 
   return (
     <Modal isOpen={isOpen} onClose={() => {}} isCentered closeOnOverlayClick={false}>
@@ -330,50 +403,97 @@ const PlayerSelectModal = ({
             <AlertMessage message={error.message ?? 'Unable to load player list.'} />
           ) : (
             <Stack spacing={4}>
-              <Input
-                ref={inputRef}
-                value={searchValue}
-                onChange={(event) => onSearchChange(event.target.value)}
-                placeholder="Search players"
-                bg="rgba(255,255,255,0.02)"
-                borderColor="rgba(255,255,255,0.08)"
-                color="#E4E8FF"
-                _placeholder={{ color: 'rgba(255,255,255,0.4)' }}
-                _hover={{ borderColor: 'rgba(255,255,255,0.16)' }}
-                _focusVisible={{
-                  borderColor: '#6d74d1',
-                  boxShadow: '0 0 0 1px rgba(109, 116, 209, 0.45)',
+              <InputGroup>
+                <Input
+                  ref={inputRef}
+                  value={searchValue}
+                  onChange={(event) => onSearchChange(event.target.value)}
+                  placeholder="Search players"
+                  bg="rgba(255,255,255,0.02)"
+                  borderColor="rgba(255,255,255,0.08)"
+                  color="#E4E8FF"
+                  _placeholder={{ color: 'rgba(255,255,255,0.4)' }}
+                  _hover={{ borderColor: 'rgba(255,255,255,0.16)' }}
+                  _focusVisible={{
+                    borderColor: '#6d74d1',
+                    boxShadow: '0 0 0 1px rgba(109, 116, 209, 0.45)',
+                  }}
+                />
+                {searchValue ? (
+                  <InputRightElement height="100%" pr={1.5}>
+                    <CloseButton
+                      size="sm"
+                      color="#9CA3AF"
+                      onClick={() => {
+                        onSearchChange('');
+                        if (inputRef.current) {
+                          inputRef.current.focus();
+                          inputRef.current.select();
+                        }
+                      }}
+                      _hover={{ bg: 'rgba(255,255,255,0.12)' }}
+                    />
+                  </InputRightElement>
+                ) : null}
+              </InputGroup>
+
+              <Box
+                maxH="45vh"
+                overflowY="auto"
+                pr="2"
+                css={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'rgba(255,255,255,0.08) transparent',
+                  '::-webkit-scrollbar': { width: '10px' },
+                  '::-webkit-scrollbar-thumb': {
+                    background: 'rgba(255,255,255,0.07)',
+                    borderRadius: '10px',
+                    border: '3px solid transparent',
+                    backgroundClip: 'content-box',
+                  },
+                  '::-webkit-scrollbar-thumb:hover': {
+                    background: 'rgba(255,255,255,0.12)',
+                  },
                 }}
-              />
-              <Box maxH="45vh" overflowY="auto" pr={2}>
+              >
                 {players.length === 0 ? (
-                  <Text color="#9CA3AF" textAlign="center">
-                    No players match your search.
-                  </Text>
+                  <Flex align="center" justify="center" py={10}>
+                    <Text color="#9CA3AF" textAlign="center">
+                      No players match your search.
+                    </Text>
+                  </Flex>
                 ) : (
-                  <Stack spacing={1}>
-                    {players.map(([id, name]) => (
-                      <Box
-                        key={id}
-                        as="button"
-                        type="button"
-                        w="100%"
-                        textAlign="left"
-                        borderRadius="lg"
-                        px={3}
-                        py={2.5}
-                        bg="rgba(255,255,255,0.02)"
-                        color="#E4E8FF"
-                        _hover={{ bg: 'rgba(255,255,255,0.05)' }}
-                        _focusVisible={{
-                          outline: '2px solid #6d74d1',
-                          outlineOffset: '2px',
-                        }}
-                        onClick={() => onSelectPlayer(id, name)}
-                      >
-                        {name}
-                      </Box>
-                    ))}
+                  <Stack spacing={2}>
+                    {players.map(([id, name], index) => {
+                      const isHighlighted = index === highlightedIndex;
+                      return (
+                        <Box
+                          key={id}
+                          as="button"
+                          type="button"
+                          w="100%"
+                          textAlign="left"
+                          borderRadius="lg"
+                          px={4}
+                          py={3}
+                          bg={isHighlighted ? `${accentColor}1f` : 'rgba(255,255,255,0.02)'}
+                          color="#E4E8FF"
+                          transition="background 120ms ease"
+                          _hover={{ bg: `${accentColor}1f` }}
+                          _active={{ bg: `${accentColor}33` }}
+                          _focusVisible={{
+                            outline: `2px solid ${accentColor}`,
+                            outlineOffset: '2px',
+                          }}
+                          ref={(element) => {
+                            listItemRefs.current[index] = element;
+                          }}
+                          onClick={() => handleSelect(id, name)}
+                        >
+                          {name}
+                        </Box>
+                      );
+                    })}
                   </Stack>
                 )}
               </Box>
@@ -393,11 +513,13 @@ PlayerSelectModal.propTypes = {
   searchValue: PropTypes.string.isRequired,
   onSearchChange: PropTypes.func.isRequired,
   onSelectPlayer: PropTypes.func.isRequired,
+  accentColor: PropTypes.string,
 };
 
 PlayerSelectModal.defaultProps = {
   isLoading: false,
   error: null,
+  accentColor: '#38E8C6',
 };
 
 const ReplayIcon = (props) => (
