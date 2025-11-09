@@ -197,6 +197,7 @@ const TimedModeView = ({ onBack }) => {
             pt: 0,
             pb: { base: 3, md: 4 },
           }}
+          accentColor={TIME_TRIAL_ACCENT}
         />
 
         <Box

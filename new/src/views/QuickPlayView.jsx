@@ -143,6 +143,7 @@ const QuickPlayView = ({ onBack }) => {
             pt: 0,
             pb: { base: 3, md: 4 },
           }}
+          accentColor={QUICK_PLAY_ACCENT}
         />
 
         <Box

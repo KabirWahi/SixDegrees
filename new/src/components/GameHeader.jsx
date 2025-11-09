@@ -2,6 +2,11 @@ import { Box, Flex, Heading, Stack, Text } from '@chakra-ui/react';
 import PropTypes from 'prop-types';
 import BackButton from './BackButton.jsx';
 
+const buildAccentGradient = (color) =>
+  color
+    ? `linear-gradient(90deg, ${color}33 0%, ${color}99 50%, ${color}33 100%)`
+    : null;
+
 const GameHeader = ({
   title,
   subtitle = undefined,
@@ -9,6 +14,7 @@ const GameHeader = ({
   rightContent = null,
   backButtonProps = {},
   containerProps = {},
+  accentColor = undefined,
 }) => (
   <Box position="relative" {...containerProps}>
     <Flex
@@ -28,12 +34,22 @@ const GameHeader = ({
         )}
       </Box>
 
-      <Stack spacing={1} textAlign="center" flex="1" align="center">
-        <Heading size={{ base: 'md', md: 'lg' }} color="#E4E8FF">
+      <Stack spacing={3} textAlign="center" flex="1" align="center">
+        <Heading
+          as="h1"
+          fontSize={{ base: 'xl', md: '2xl' }}
+          fontWeight={700}
+          letterSpacing="0.02em"
+          color="#E8ECFF"
+        >
           {title}
         </Heading>
         {subtitle ? (
-          <Text fontSize={{ base: 'sm', md: 'md' }} color="#9CA3AF">
+          <Text
+            fontSize={{ base: 'sm', md: 'sm' }}
+            color="rgba(232, 236, 255, 0.75)"
+            maxW="640px"
+          >
             {subtitle}
           </Text>
         ) : null}
@@ -59,6 +75,7 @@ GameHeader.propTypes = {
   rightContent: PropTypes.node,
   backButtonProps: PropTypes.object,
   containerProps: PropTypes.object,
+  accentColor: PropTypes.string,
 };
 
 export default GameHeader;

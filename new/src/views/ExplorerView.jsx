@@ -183,6 +183,7 @@ const ExplorerView = ({ onBack }) => {
             pt: 0,
             pb: { base: 3, md: 4 },
           }}
+          accentColor={EXPLORER_ACCENT}
         />
 
         <Box
