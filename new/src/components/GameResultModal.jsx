@@ -37,20 +37,47 @@ const GameResultModal = ({
   const effectiveTitle = title || fallback.title;
   const effectiveDescription = description || fallback.description;
   const effectiveReplayLabel = replayLabel || fallback.replayLabel;
+  const accentGlow =
+    status === 'win'
+      ? 'inset 0 0 10px rgba(56,232,198,0.08)'
+      : status === 'lose'
+        ? 'inset 0 0 10px rgba(255,90,126,0.08)'
+        : 'none';
 
   return (
     <Modal isOpen={isOpen} onClose={() => {}} isCentered closeOnOverlayClick={false}>
-      <ModalOverlay />
-      <ModalContent bg="#0F1320" border="1px solid rgba(255,255,255,0.08)" borderRadius="2xl">
-        <ModalHeader color="#E4E8FF">{effectiveTitle}</ModalHeader>
-        <ModalBody>
-          <Text color="#9CA3AF">{effectiveDescription}</Text>
+      <ModalOverlay bg="rgba(6,10,16,0.6)" backdropFilter="blur(4px)" />
+      <ModalContent
+        bg="rgba(18,24,36,0.92)"
+        border="1px solid rgba(255,255,255,0.05)"
+        borderRadius="20px"
+        boxShadow={`0 12px 32px rgba(0,0,0,0.4), ${accentGlow}`}
+      >
+        <ModalHeader color="#E4E8FF" fontWeight="700" pb={2} pt={6} textAlign="center">
+          {effectiveTitle}
+        </ModalHeader>
+        <ModalBody textAlign="center" pb={4}>
+          <Text color="rgba(232,236,255,0.75)" maxW="28ch" mx="auto">
+            {effectiveDescription}
+          </Text>
         </ModalBody>
-        <ModalFooter display="flex" gap={3}>
-          <Button variant="outline" borderColor="rgba(255,255,255,0.2)" color="#E4E8FF" onClick={onBack}>
+        <ModalFooter display="flex" gap={4} justifyContent="center" pb={6}>
+          <Button
+            variant="outline"
+            borderColor="rgba(255,255,255,0.2)"
+            color="#E4E8FF"
+            onClick={onBack}
+            _hover={{ boxShadow: '0 0 8px rgba(100,140,255,0.3)' }}
+            _focusVisible={{ boxShadow: '0 0 0 2px rgba(100,140,255,0.35)' }}
+          >
             {backLabel}
           </Button>
-          <Button colorScheme="brand" onClick={onReplay}>
+          <Button
+            colorScheme="brand"
+            onClick={onReplay}
+            _hover={{ boxShadow: '0 0 8px rgba(100,140,255,0.3)' }}
+            _focusVisible={{ boxShadow: '0 0 0 2px rgba(100,140,255,0.35)' }}
+          >
             {effectiveReplayLabel}
           </Button>
         </ModalFooter>
