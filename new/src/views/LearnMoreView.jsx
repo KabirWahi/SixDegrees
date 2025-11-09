@@ -40,8 +40,15 @@ const LearnMoreView = ({ onBack }) => {
   }, [onBack]);
 
   return (
-  <Box bg="#060912" minH="100vh" color="#A0A5C5" position="relative" overflow="hidden">
-    <Backdrop />
+  <Box
+    bg="#0A0F1A"
+    bgImage="radial-gradient(circle at center, rgba(40,80,180,0.08) 0%, transparent 50%), radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)"
+    bgSize="cover, 8px 8px"
+    minH="100vh"
+    color="#A0A5C5"
+    position="relative"
+    overflow="hidden"
+  >
     <Button
       position="absolute"
       top={{ base: 4, md: 6 }}
@@ -152,31 +159,6 @@ const ScopeChip = ({ children }) => (
 ScopeChip.propTypes = {
   children: PropTypes.node.isRequired,
 };
-
-const Backdrop = () => (
-  <Box>
-    <Box
-      position="absolute"
-      inset="0"
-      bg="radial-gradient(circle at top, rgba(99,102,241,0.25), transparent 55%)"
-      opacity={0.6}
-    />
-    <Box
-      position="absolute"
-      inset="0"
-      bg={`url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-opacity='0.2' stroke='%236d74d1' stroke-width='0.5'%3E%3Ccircle cx='80' cy='80' r='1'/%3E%3Ccircle cx='20' cy='40' r='1'/%3E%3Ccircle cx='120' cy='20' r='1'/%3E%3Ccircle cx='140' cy='120' r='1'/%3E%3Ccircle cx='40' cy='130' r='1'/%3E%3C/g%3E%3C/svg%3E")`}
-      opacity={0.4}
-      animation="drift 60s linear infinite"
-      sx={{
-        '@keyframes drift': {
-          '0%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-40px)' },
-          '100%': { transform: 'translateY(0px)' },
-        },
-      }}
-    />
-  </Box>
-);
 
 LearnMoreView.propTypes = {
   onBack: PropTypes.func.isRequired,
