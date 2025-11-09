@@ -1,5 +1,6 @@
-import { Box, Button, Flex, Heading, Stack, Text } from '@chakra-ui/react';
+import { Box, Flex, Heading, Stack, Text } from '@chakra-ui/react';
 import PropTypes from 'prop-types';
+import BackButton from './BackButton.jsx';
 
 const GameHeader = ({
   title,
@@ -23,16 +24,7 @@ const GameHeader = ({
         justifyContent="flex-start"
       >
         {onBack && (
-          <Button
-            onClick={onBack}
-            colorScheme="brand"
-            borderRadius="full"
-            px={{ base: 6, md: 7 }}
-            mt={{ base: 1, md: 2 }}
-            {...backButtonProps}
-          >
-            ← Back
-          </Button>
+          <BackButton onClick={onBack} mt={{ base: 1, md: 2 }} {...backButtonProps} />
         )}
       </Box>
 

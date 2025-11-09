@@ -16,6 +16,13 @@ import GameResultModal from '../components/GameResultModal.jsx';
 import InfoPill from '../components/InfoPill.jsx';
 import useGraphGame from '../hooks/useGraphGame.js';
 
+const PAGE_BACKGROUND_PROPS = {
+  bg: '#0A0F1A',
+  bgImage:
+    'radial-gradient(circle at center, rgba(40,80,180,0.08) 0%, transparent 50%), radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)',
+  bgSize: 'cover, 8px 8px',
+};
+
 const QuickPlayView = ({ onBack }) => {
   const {
     loading,
@@ -116,7 +123,7 @@ const QuickPlayView = ({ onBack }) => {
         : undefined;
 
   return (
-    <Box bg="#060912" minH="100vh">
+    <Box minH="100vh" {...PAGE_BACKGROUND_PROPS}>
       <Flex
         direction="column"
         h="100vh"

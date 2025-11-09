@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
   Box,
-  Button,
   Divider,
   Flex,
   Heading,
@@ -10,6 +9,7 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
+import BackButton from '../components/BackButton.jsx';
 
 const MODES = [
   {
@@ -49,22 +49,15 @@ const LearnMoreView = ({ onBack }) => {
     position="relative"
     overflow="hidden"
   >
-    <Button
+    <BackButton
       position="absolute"
       top={{ base: 4, md: 6 }}
       left={{ base: 4, md: 6 }}
-      variant="outline"
-      borderColor="rgba(255,255,255,0.15)"
-      color="#E4E8FF"
-      borderRadius="full"
-      size="sm"
-      px={6}
       onClick={onBack}
-      _hover={{ bg: 'rgba(255,255,255,0.06)' }}
       zIndex={2}
     >
       ← Back
-    </Button>
+    </BackButton>
     <Flex
       direction="column"
       align="center"
