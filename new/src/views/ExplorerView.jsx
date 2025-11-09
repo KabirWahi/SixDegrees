@@ -56,7 +56,6 @@ const ExplorerView = ({ onBack }) => {
     nodeName: 'Unknown',
   });
   const [playerList, setPlayerList] = useState([]);
-  const [playerSearch, setPlayerSearch] = useState('');
   const [playerLoading, setPlayerLoading] = useState(true);
   const [playerError, setPlayerError] = useState(null);
 
@@ -105,12 +104,6 @@ const ExplorerView = ({ onBack }) => {
     return () => controller.abort();
   }, [requestNeighbors, sourceId]);
 
-  const filteredPlayers = useMemo(() => {
-    if (!playerSearch.trim()) return playerList;
-    const normalizedQuery = normalizeText(playerSearch);
-    return playerList.filter(([, name]) => normalizeText(name).includes(normalizedQuery));
-  }, [playerList, playerSearch]);
-
   const panelNeighbors = panelState.nodeId ? neighborsMap[panelState.nodeId] ?? [] : [];
   const panelLoading = Boolean(panelState.nodeId && loadingNodeId === panelState.nodeId);
   const panelError = panelState.nodeId ? errorByNode[panelState.nodeId] : null;
@@ -122,7 +115,6 @@ const ExplorerView = ({ onBack }) => {
   const handlePlayerSelect = useCallback(
     (playerId, playerName) => {
       setManualSource(playerId, playerName);
-      setPlayerSearch('');
     },
     [setManualSource],
   );
@@ -264,9 +256,7 @@ const ExplorerView = ({ onBack }) => {
             isOpen={!hasStartPlayer}
             isLoading={playerLoading}
             error={playerError}
-            players={filteredPlayers}
-            searchValue={playerSearch}
-            onSearchChange={setPlayerSearch}
+            players={playerList}
             onSelectPlayer={handlePlayerSelect}
             accentColor={EXPLORER_ACCENT}
           />
@@ -303,18 +293,31 @@ const PlayerSelectModal = ({
   isLoading,
   error,
   players,
-  searchValue,
-  onSearchChange,
   onSelectPlayer,
   accentColor,
 }) => {
   const inputRef = useRef(null);
   const listItemRefs = useRef([]);
+  const playersRef = useRef([]);
+  const [query, setQuery] = useState('');
+  const sortedPlayers = useMemo(() => {
+    if (!Array.isArray(players)) return [];
+    return [...players].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [players]);
+  const filteredPlayers = useMemo(() => {
+    if (!query.trim()) return sortedPlayers;
+    const normalizedQuery = normalizeText(query);
+    if (!normalizedQuery) return sortedPlayers;
+    return sortedPlayers.filter(([, name]) => normalizeText(name).includes(normalizedQuery));
+  }, [query, sortedPlayers]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const playerCount = players.length;
+  const playerCount = filteredPlayers.length;
   const hasPlayers = playerCount > 0;
 
   listItemRefs.current = [];
+  useEffect(() => {
+    playersRef.current = filteredPlayers;
+  }, [filteredPlayers]);
 
   useEffect(() => {
     if (highlightedIndex >= playerCount) {
@@ -324,7 +327,13 @@ const PlayerSelectModal = ({
 
   useEffect(() => {
     setHighlightedIndex(-1);
-  }, [isOpen, searchValue]);
+  }, [isOpen, query]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setQuery('');
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || isLoading) return;
@@ -342,6 +351,7 @@ const PlayerSelectModal = ({
       if (!playerId || !playerName) return;
       onSelectPlayer(playerId, playerName);
       setHighlightedIndex(-1);
+      setQuery('');
       requestAnimationFrame(() => {
         if (inputRef.current) {
           inputRef.current.focus();
@@ -357,29 +367,30 @@ const PlayerSelectModal = ({
     const handleKey = (event) => {
       if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key)) return;
       if (isLoading || error || !hasPlayers) return;
+      const currentPlayers = playersRef.current ?? [];
 
       if (event.key === 'ArrowDown') {
         event.preventDefault();
         setHighlightedIndex((prev) => {
-          if (prev === -1 || prev >= players.length - 1) return 0;
+          if (prev === -1 || prev >= playerCount - 1) return 0;
           return prev + 1;
         });
       } else if (event.key === 'ArrowUp') {
         event.preventDefault();
         setHighlightedIndex((prev) => {
-          if (prev <= 0) return players.length - 1;
+          if (prev <= 0) return playerCount - 1;
           return prev - 1;
         });
       } else if (event.key === 'Enter') {
-        if (highlightedIndex < 0 || highlightedIndex >= players.length) return;
+        if (highlightedIndex < 0 || highlightedIndex >= currentPlayers.length) return;
         event.preventDefault();
-        const [playerId, playerName] = players[highlightedIndex];
+        const [playerId, playerName] = currentPlayers[highlightedIndex];
         handleSelect(playerId, playerName);
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [error, handleSelect, hasPlayers, highlightedIndex, isLoading, isOpen, players]);
+  }, [error, handleSelect, hasPlayers, highlightedIndex, isLoading, isOpen, playerCount]);
 
   useEffect(() => {
     if (highlightedIndex < 0) return;
@@ -406,8 +417,8 @@ const PlayerSelectModal = ({
               <InputGroup>
                 <Input
                   ref={inputRef}
-                  value={searchValue}
-                  onChange={(event) => onSearchChange(event.target.value)}
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search players"
                   bg="rgba(255,255,255,0.02)"
                   borderColor="rgba(255,255,255,0.08)"
@@ -419,13 +430,13 @@ const PlayerSelectModal = ({
                     boxShadow: '0 0 0 1px rgba(109, 116, 209, 0.45)',
                   }}
                 />
-                {searchValue ? (
+                {query ? (
                   <InputRightElement height="100%" pr={1.5}>
                     <CloseButton
                       size="sm"
                       color="#9CA3AF"
                       onClick={() => {
-                        onSearchChange('');
+                        setQuery('');
                         if (inputRef.current) {
                           inputRef.current.focus();
                           inputRef.current.select();
@@ -456,7 +467,7 @@ const PlayerSelectModal = ({
                   },
                 }}
               >
-                {players.length === 0 ? (
+                {playerCount === 0 ? (
                   <Flex align="center" justify="center" py={10}>
                     <Text color="#9CA3AF" textAlign="center">
                       No players match your search.
@@ -464,8 +475,10 @@ const PlayerSelectModal = ({
                   </Flex>
                 ) : (
                   <Stack spacing={2}>
-                    {players.map(([id, name], index) => {
+                    {filteredPlayers.map(([id, name], index) => {
                       const isHighlighted = index === highlightedIndex;
+                      const baseBg = isHighlighted ? `${accentColor}1f` : 'rgba(255,255,255,0.02)';
+                      const hoverBg = isHighlighted ? `${accentColor}33` : 'rgba(255,255,255,0.04)';
                       return (
                         <Box
                           key={id}
@@ -476,10 +489,10 @@ const PlayerSelectModal = ({
                           borderRadius="lg"
                           px={4}
                           py={3}
-                          bg={isHighlighted ? `${accentColor}1f` : 'rgba(255,255,255,0.02)'}
+                          bg={baseBg}
                           color="#E4E8FF"
                           transition="background 120ms ease"
-                          _hover={{ bg: `${accentColor}1f` }}
+                          _hover={{ bg: hoverBg }}
                           _active={{ bg: `${accentColor}33` }}
                           _focusVisible={{
                             outline: `2px solid ${accentColor}`,
@@ -510,8 +523,6 @@ PlayerSelectModal.propTypes = {
   isLoading: PropTypes.bool,
   error: PropTypes.object,
   players: PropTypes.arrayOf(PropTypes.array).isRequired,
-  searchValue: PropTypes.string.isRequired,
-  onSearchChange: PropTypes.func.isRequired,
   onSelectPlayer: PropTypes.func.isRequired,
   accentColor: PropTypes.string,
 };
