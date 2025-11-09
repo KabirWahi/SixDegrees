@@ -47,7 +47,7 @@ export const SidebarCounterCard = ({ label, value, ...flexProps }) => (
     bg="linear-gradient(145deg, #12161f, #0c0f16)"
     border="1px solid rgba(255,255,255,0.05)"
     px={{ base: 4, md: 5 }}
-    py={{ base: 3, md: 4 }}
+    py={{ base: 3, md: 3 }}
     boxShadow="0 4px 10px rgba(0,0,0,0.3)"
     {...flexProps}
   >

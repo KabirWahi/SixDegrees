@@ -151,6 +151,9 @@ const QuickPlayView = ({ onBack }) => {
           borderRadius="3xl"
           overflow="hidden"
           bg="#050713"
+          bgImage="radial-gradient(circle at center, rgba(40,80,180,0.05) 0%, transparent 55%), radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)"
+          bgSize="cover, 12px 12px"
+          bgPosition="center, center"
           border="1px solid rgba(109, 116, 209, 0.25)"
           w="100%"
         >
