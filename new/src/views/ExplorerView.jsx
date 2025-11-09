@@ -29,6 +29,7 @@ const PAGE_BACKGROUND_PROPS = {
     'radial-gradient(circle at center, rgba(40,80,180,0.08) 0%, transparent 50%), radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)',
   bgSize: 'cover, 8px 8px',
 };
+const EXPLORER_ACCENT = '#38E8C6';
 
 const ExplorerView = ({ onBack }) => {
   const {
@@ -219,6 +220,7 @@ const ExplorerView = ({ onBack }) => {
                 isInteractionDisabled={!hasStartPlayer}
                 useUniformColors
                 activeNodeId={panelState.nodeId}
+                accentColor={EXPLORER_ACCENT}
               />
 
               <RightNeighborsPanel

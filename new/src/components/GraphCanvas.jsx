@@ -29,6 +29,25 @@ const viewportEquals = (a, b) => {
   );
 };
 
+const hexToRgba = (hex, alpha) => {
+  if (typeof hex !== 'string') return `rgba(91, 228, 215, ${alpha})`;
+  let normalized = hex.replace('#', '');
+  if (normalized.length === 3) {
+    normalized = normalized
+      .split('')
+      .map((char) => char + char)
+      .join('');
+  }
+  if (normalized.length !== 6) return `rgba(91, 228, 215, ${alpha})`;
+  const r = Number.parseInt(normalized.slice(0, 2), 16);
+  const g = Number.parseInt(normalized.slice(2, 4), 16);
+  const b = Number.parseInt(normalized.slice(4, 6), 16);
+  if ([r, g, b].some(Number.isNaN)) {
+    return `rgba(91, 228, 215, ${alpha})`;
+  }
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 const GraphCanvas = ({
   nodes,
   links,
@@ -38,6 +57,7 @@ const GraphCanvas = ({
   isInteractionDisabled,
   useUniformColors,
   activeNodeId,
+  accentColor,
 }) => {
   const containerRef = useRef(null);
   const svgRef = useRef(null);
@@ -364,22 +384,30 @@ const GraphCanvas = ({
   const circleStyles = useMemo(
     () => ({
       source: {
-        fill: 'rgba(56, 232, 198, 0.18)',
-        stroke: 'rgba(56, 232, 198, 0.5)',
-        shadow: '0px 10px 25px rgba(56, 232, 198, 0.35)',
+        fill: 'rgba(56, 232, 198, 0.12)',
+        stroke: 'rgba(56, 232, 198, 0.45)',
+        shadow: '0px 6px 18px rgba(56, 232, 198, 0.25)',
       },
       target: {
-        fill: 'rgba(255, 90, 126, 0.22)',
-        stroke: 'rgba(255, 90, 126, 0.6)',
-        shadow: '0px 10px 25px rgba(255, 90, 126, 0.35)',
+        fill: 'rgba(255, 90, 126, 0.14)',
+        stroke: 'rgba(255, 90, 126, 0.5)',
+        shadow: '0px 6px 18px rgba(255, 90, 126, 0.25)',
       },
       default: {
-        fill: 'rgba(109, 116, 209, 0.22)',
-        stroke: 'rgba(109, 116, 209, 0.6)',
-        shadow: '0px 10px 25px rgba(109, 116, 209, 0.35)',
+        fill: 'rgba(109, 116, 209, 0.14)',
+        stroke: 'rgba(109, 116, 209, 0.5)',
+        shadow: '0px 6px 18px rgba(109, 116, 209, 0.25)',
       },
     }),
     [],
+  );
+
+  const linkGradient = useMemo(
+    () => ({
+      start: hexToRgba(accentColor, 0.35),
+      end: hexToRgba(accentColor, 0.05),
+    }),
+    [accentColor],
   );
 
   return (
@@ -392,6 +420,12 @@ const GraphCanvas = ({
         aria-label="Player graph"
         style={{ display: 'block', cursor: isInteractionDisabled ? 'default' : isPanning ? 'grabbing' : 'grab' }}
       >
+        <defs>
+          <linearGradient id="linkGradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={linkGradient.start} />
+            <stop offset="100%" stopColor={linkGradient.end} />
+          </linearGradient>
+        </defs>
         <g ref={graphLayerRef}>
           {normalizedLinks.map((link) => {
             const sourcePosition = nodePositions[link.sourceId];
@@ -406,8 +440,8 @@ const GraphCanvas = ({
                 y1={sourcePosition.y}
                 x2={targetPosition.x}
                 y2={targetPosition.y}
-                stroke="rgba(56, 232, 198, 0.4)"
-                strokeWidth={2}
+                stroke="url(#linkGradient)"
+                strokeWidth={1.8}
                 strokeLinecap="round"
               />
             );
@@ -462,8 +496,8 @@ const GraphCanvas = ({
                 <text
                   textAnchor="middle"
                   dy="0.35em"
-                  fill="#E4E8FF"
-                  fontSize={16}
+                  fill="rgba(228, 232, 255, 0.85)"
+                  fontSize={15}
                   fontWeight={600}
                 >
                   {node.label}
@@ -515,6 +549,7 @@ GraphCanvas.propTypes = {
   isInteractionDisabled: PropTypes.bool,
   useUniformColors: PropTypes.bool,
   activeNodeId: PropTypes.string,
+  accentColor: PropTypes.string,
 };
 
 GraphCanvas.defaultProps = {
@@ -524,6 +559,7 @@ GraphCanvas.defaultProps = {
   isInteractionDisabled: false,
   useUniformColors: false,
   activeNodeId: undefined,
+  accentColor: '#5be4d7',
 };
 
 const CrosshairIcon = (props) => (

@@ -22,6 +22,7 @@ const PAGE_BACKGROUND_PROPS = {
     'radial-gradient(circle at center, rgba(40,80,180,0.08) 0%, transparent 50%), radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)',
   bgSize: 'cover, 8px 8px',
 };
+const QUICK_PLAY_ACCENT = '#FFC54D';
 
 const QuickPlayView = ({ onBack }) => {
   const {
@@ -208,6 +209,7 @@ const QuickPlayView = ({ onBack }) => {
                 onNodeClick={handleNodeClick}
                 isInteractionDisabled={gameComplete}
                 activeNodeId={panelState.nodeId}
+                accentColor={QUICK_PLAY_ACCENT}
               />
 
               <RightNeighborsPanel
