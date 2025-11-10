@@ -187,22 +187,32 @@ const RightNeighborsPanel = ({
             borderBottom="1px solid rgba(255,255,255,0.05)"
             pb={4}
           >
-            <Box pt={2} pb={3}>
-              <Text fontSize="xs" letterSpacing="0.3em" color="rgba(255,255,255,0.5)" mb={1}>
-                CURRENT NODE
-              </Text>
-              <Text fontSize="lg" fontWeight="600" color="#E4E8FF" noOfLines={2}>
-                {selectedNodeName ?? 'Unknown'}
-              </Text>
-              <Box
-                mt={3}
-                w="48px"
-                h="2px"
-                borderRadius="full"
-                bg={`${accentColor}88`}
-                opacity={0.85}
+            <Flex align="center" justify="space-between" gap={3}>
+              <Box flex="1" minW="0">
+                <Text fontSize="xs" letterSpacing="0.3em" color="rgba(255,255,255,0.5)" mb={1}>
+                  CURRENT NODE
+                </Text>
+                <Text fontSize="lg" fontWeight="600" color="#E4E8FF" noOfLines={2}>
+                  {selectedNodeName ?? 'Unknown'}
+                </Text>
+              </Box>
+              <CloseButton
+                aria-label="Close neighbors panel"
+                color="#9CA3AF"
+                onClick={onClose}
+                alignSelf="flex-start"
+                mt={-1}
+                _hover={{ bg: 'rgba(255,255,255,0.12)', color: '#E4E8FF' }}
               />
-            </Box>
+            </Flex>
+            <Box
+              mt={3}
+              w="48px"
+              h="2px"
+              borderRadius="full"
+              bg={`${accentColor}88`}
+              opacity={0.85}
+            />
 
             <Box mt={3}>
               <InputGroup>
